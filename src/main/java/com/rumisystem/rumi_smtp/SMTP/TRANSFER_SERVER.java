@@ -58,17 +58,17 @@ public class TRANSFER_SERVER {
 									
 									//最初のメッセージ
 									WRITE(BW, "220 rumiserver.com ESMTP RumiSMTP joukoso!", IP);
-									
+
 									String REMOTE_DOMAIN = null;
 									String MAIL_FROM = null;
 									List<String> MAIL_TO = new ArrayList<String>();
 									String MAIL_TEXT = null;
-									
+
 									String LINE = "";
 									while((LINE = BR.readLine()) != null) {
 										String[] CMD = LINE.split(" ");
 
-										LOG(LOG_TYPE.INFO, "IP | <-" + LINE);
+										LOG(LOG_TYPE.INFO, "<-" + IP + "|" + LINE);
 
 										switch(CMD[0]) {
 											case "HELO":{
@@ -220,6 +220,6 @@ public class TRANSFER_SERVER {
 		BW.print(TEXT + "\r\n");
 		BW.flush();
 		
-		LOG(LOG_TYPE.INFO, "->" + TEXT);
+		LOG(LOG_TYPE.INFO, "->" + IP + "|" + TEXT);
 	}
 }
