@@ -158,7 +158,7 @@ public class TRANSFER_SERVER {
 																+ "ID <" + ID + ">\n"
 																+ "FOR <" + TO + ">";
 
-														System.out.println("新しいメール：\n" + MAIL_FROM + "から" + TO + "へ\n" + TREES_DATA + "\n" + MAIL_TEXT);
+														//System.out.println("新しいメール：\n" + MAIL_FROM + "から" + TO + "へ\n" + TREES_DATA + "\n" + MAIL_TEXT);
 													}
 												} else {
 													WRITE(BW, "500 MAIL ka RCPT wo tobashitana?", IP);
