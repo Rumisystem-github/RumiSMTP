@@ -4,16 +4,23 @@ import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 
@@ -22,6 +29,8 @@ public class TRANSFER_SERVER {
 	
 	public static void Main() throws IOException {
 		ServerSocket SS = new ServerSocket(PORT);
+		
+		List<String> CONNECTERE_IP = new ArrayList<String>();
 		
 		new Thread(new Runnable() {
 			
@@ -37,6 +46,7 @@ public class TRANSFER_SERVER {
 							public void run() {
 								try {
 									Socket SESSION = SOCKET;
+									SSLSocket SSL_SESSION = null;
 									BufferedReader BR = new BufferedReader(new InputStreamReader(SESSION.getInputStream()));
 									PrintWriter BW = new PrintWriter(SESSION.getOutputStream(), true);
 									
@@ -68,7 +78,6 @@ public class TRANSFER_SERVER {
 												WRITE(BW, "250-rumiserver.com Hello " + CMD[1]);
 												//WRITE(BW, "250-STARTTLS");
 												WRITE(BW, "250 SIZE 35882577");
-												//WRITE(BW, "250 8BITMIME");
 												break;
 											}
 
@@ -112,9 +121,6 @@ public class TRANSFER_SERVER {
 											}
 
 											case "DATA":{
-												System.out.println(MAIL_FROM);
-												System.out.println(MAIL_TO.size());
-
 												if (MAIL_FROM != null && MAIL_TO.size() >= 0) {
 													WRITE(BW, "354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
 													StringBuilder SB = new StringBuilder();
@@ -159,10 +165,15 @@ public class TRANSFER_SERVER {
 												WRITE(BW, "250 OK! Zenkeshi");
 												break;
 											}
-											
+
 											case "QUIT":{
 												WRITE(BW, "221 Sajonara!");
-												SESSION.close();
+
+												if(SSL_SESSION == null) {
+													SESSION.close();
+												} else {
+													SSL_SESSION.close();
+												}
 												return;
 											}
 
