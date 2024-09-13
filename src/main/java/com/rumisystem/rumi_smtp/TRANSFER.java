@@ -5,9 +5,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,11 +14,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
 import java.util.Hashtable;
-import java.util.Locale;
+
+import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 
 public class TRANSFER {
 	private BufferedReader BR = null;

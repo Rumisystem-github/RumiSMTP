@@ -1,12 +1,8 @@
 package com.rumisystem.rumi_smtp;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
-import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import com.rumisystem.rumi_java_lib.ArrayNode;
 import com.rumisystem.rumi_java_lib.CONFIG;
