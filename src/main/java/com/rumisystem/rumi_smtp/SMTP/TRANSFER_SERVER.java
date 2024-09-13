@@ -58,7 +58,7 @@ public class TRANSFER_SERVER {
 									SSLSocket SSL_SESSION = null;
 									BufferedReader BR = new BufferedReader(new InputStreamReader(SESSION.getInputStream()));
 									PrintWriter BW = new PrintWriter(SESSION.getOutputStream(), true);
-									BW_WRITEER BWW = new BW_WRITEER(BW, IP);
+									BW_WRITEER BWW = new BW_WRITEER(BW, IP, "T");
 
 									//最初のメッセージ
 									BWW.SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!");
