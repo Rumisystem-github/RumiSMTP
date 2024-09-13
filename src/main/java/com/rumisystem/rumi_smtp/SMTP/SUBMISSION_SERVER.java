@@ -19,8 +19,10 @@ import java.net.Socket;
 import javax.net.ssl.*;
 
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.TRANSFER;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
+import com.rumisystem.rumi_smtp.MODULE.MAIL_CHECK;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.EHLO;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.NOOP;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.VRFY;
@@ -118,25 +120,30 @@ public class SUBMISSION_SERVER {
 												}
 
 												case "MAIL":{
-													if (CMD[1].split(":")[1] != null && AUTH_OK) {
-														String FROM = CMD[1].split(":")[1];
-														
-														//<>で囲われていない場合が有るらしいので
-														if (FROM.startsWith("<") && FROM.endsWith(">")) {
-															FROM = FROM.replace("<", "");
-															FROM = FROM.replace(">", "");
+													if (AUTH_OK) {
+														if (CMD[1].split(":")[1] != null) {
+															String FROM = CMD[1].split(":")[1];
 															
-															MAIL_FROM = FROM;
-														} else {
-															MAIL_FROM = FROM;
-														}
+															//<>で囲われていない場合が有るらしいので
+															if (FROM.startsWith("<") && FROM.endsWith(">")) {
+																FROM = FROM.replace("<", "");
+																FROM = FROM.replace(">", "");
+																
+																MAIL_FROM = FROM;
+															} else {
+																MAIL_FROM = FROM;
+															}
 
-														//OK
-														BWW.SEND("250 OK!");
-														break;
+															//OK
+															BWW.SEND("250 OK!");
+															break;
+														} else {
+															BWW.SEND("800 meeru adoresu ga okashii");
+														}
 													} else {
-														BWW.SEND("800 meeru adoresu ga okashii");
+														BWW.SEND("535 AUTH SHIRO");
 													}
+													break;
 												}
 
 												case "RCPT":{
@@ -157,7 +164,7 @@ public class SUBMISSION_SERVER {
 															}
 
 															//自分のドメインならメアドが有るかチェックしない
-															if (!CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO)) {
+															if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
 																//メアドがあるか？
 																if (MAILBOX.VRFY(TO)) {
 																	//OK
@@ -172,61 +179,87 @@ public class SUBMISSION_SERVER {
 															BWW.SEND("500 TO ga ooi");
 														}
 													} else {
-														BWW.SEND("554 AUTH SHIRO");
+														BWW.SEND("535 AUTH SHIRO");
 													}
 													break;
-												}
+												} 
 
 												case "DATA":{
-													if (MAIL_FROM != null && MAIL_TO.size() >= 0 && AUTH_OK) {
-														BWW.SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
-														StringBuilder SB = new StringBuilder();
-														String LT = "";
-														while((LT = BR.readLine()) != null) {
-															//.だけなら終了
-															if (!LT.equals(".")) {
-																if (SB.length() >= MAX_SIZE) {
-																	BWW.SEND("552 MAIL SIZE GA DEKAI! MAX HA" + MAX_SIZE + "DAJO!");
+													if (AUTH_OK) {
+														if (MAIL_FROM != null && MAIL_TO.size() >= 0) {
+															BWW.SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
+															StringBuilder SB = new StringBuilder();
+															String LT = "";
+															while((LT = BR.readLine()) != null) {
+																//.だけなら終了
+																if (!LT.equals(".")) {
+																	if (SB.length() >= MAX_SIZE) {
+																		BWW.SEND("552 MAIL SIZE GA DEKAI! MAX HA" + MAX_SIZE + "DAJO!");
+																		break;
+																	}
+
+																	SB.append(LT + "\n");
+																} else {
+																	//データ内容を全てMAIL_TEXTに入れる
+																	MAIL_TEXT = SB.toString();
 																	break;
 																}
+															}
 
-																SB.append(LT + "\n");
+															//メールヘッダーを解析する
+															MAIL_CHECK MC = new MAIL_CHECK(MAIL_TEXT);
+
+															//FROMヘッダーがあるか、そしてMAIL FROMと同じかをチェック
+															String MC_FROM = MC.FROM();
+															if (MC_FROM != null) {
+																if (!MC_FROM.equals(MAIL_FROM)) {
+																	//一致していない
+																	BWW.SEND("550-Mail format ga okashii");
+																	BWW.SEND("550 From header ga husei");
+																	break;
+																}
 															} else {
-																//データ内容を全てMAIL_TEXTに入れる
-																MAIL_TEXT = SB.toString();
-																BWW.SEND("250 OK! Okuttajo!");
+																//存在しない
+																BWW.SEND("550-Mail format ga okashii");
+																BWW.SEND("550 From header ga nai");
 																break;
 															}
-														}
 
-														//メールのID
-														String ID = UUID.randomUUID().toString();
+															//メールのID
+															String ID = UUID.randomUUID().toString();
 
-														for(String TO:MAIL_TO) {
-															try {
-																//トレース情報
-																String TREES_DATA = "Received:\n"
-																		+ "FROM <" + REMOTE_DOMAIN + "> (<" + SESSION.getInetAddress().getHostAddress() + ">)\n"
-																		+ "VIA TCP\n"
-																		+ "WITH ESMTP\n"
-																		+ "ID <" + ID + ">\n"
-																		+ "FOR <" + TO + ">";
+															for(String TO:MAIL_TO) {
+																try {
+																	//トレース情報
+																	String TREES_DATA = "Received: "
+																			+ "FROM <" + REMOTE_DOMAIN + "> (<" + SESSION.getInetAddress().getHostAddress() + ">) "
+																			+ "VIA TCP "
+																			+ "WITH ESMTP "
+																			+ "ID <" + ID + "> "
+																			+ "FOR <" + TO + ">";
 
-																//自分のドメインならメールボックスを開いてメールを保存する
-																if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
-																	//メールボックスを開く
-																	MB = new MAILBOX(TO);
-																	MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
-																} else {
-																	//外部のメアド
+																	//自分のドメインならメールボックスを開いてメールを保存する
+																	if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
+																		//メールボックスを開く
+																		MB = new MAILBOX(TO);
+																		MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+																	} else {
+																		//外部のメアド
+																		TRANSFER SENDER = new TRANSFER(MAIL_FROM, TO);
+																		SENDER.SEND_MAIL(TREES_DATA + "\r\n" + MAIL_TEXT);
+																	}
+																} catch (Exception EX) {
+																	EX.printStackTrace();
 																}
-															} catch (Exception EX) {
-																EX.printStackTrace();
 															}
+
+															BWW.SEND("250 OK! Okuttajo!");
+														} else {
+															BWW.SEND("500 MAIL ka RCPT wo tobashitana? ato AUTH");
+															break;
 														}
 													} else {
-														BWW.SEND("500 MAIL ka RCPT wo tobashitana? ato AUTH");
-														break;
+														BWW.SEND("535 AUTH SHIRO");
 													}
 													break;
 												}

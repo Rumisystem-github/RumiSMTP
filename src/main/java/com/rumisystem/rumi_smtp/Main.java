@@ -4,6 +4,9 @@ import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import com.rumisystem.rumi_java_lib.ArrayNode;
 import com.rumisystem.rumi_java_lib.CONFIG;
@@ -41,8 +44,15 @@ public class Main {
 			SUBMISSION_SERVER.Main();
 			LOG(LOG_TYPE.PROCESS_END_OK, "");
 
-			//TRANSFER TF = new TRANSFER("noreply@rumiserver.com", "RumiSaabaa", "irjitgd@gmail.com");
-			//TF.SEND_MAIL("テスト", "メール送信テスト");
+			/*
+			TRANSFER TF = new TRANSFER("noreply@rumiserver.com", "rumisan_@outlook.com");
+			TF.SEND_MAIL("From: RumiSaabaa <noreply@rumiserver.com>\n"
+						+ "To: <rumisan@rumiserver.com>\n"
+						+ "Date: " + new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH).format(new Date()) + "\n"
+						+ "Subject: aaa\n"
+						+ "\n"
+						+ "aaaaa\n");
+			*/
 		} catch (Exception EX) {
 			EX.printStackTrace();
 		}

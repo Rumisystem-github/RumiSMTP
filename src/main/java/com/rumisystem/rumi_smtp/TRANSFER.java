@@ -29,17 +29,17 @@ public class TRANSFER {
 	private int PORT = 25;
 	private String FROM = "";
 	private String TO = "";
-	private String FROM_NAME = "";
+	private Socket SOCKET;
 	
-	public TRANSFER(String FROM, String FNAME, String TO) throws UnknownHostException, IOException {
+	public TRANSFER(String FROM, String TO) throws UnknownHostException, IOException {
 		this.FROM = FROM;
-		this.FROM_NAME = FNAME;
 		this.TO = TO;
 		
 		//MXレコードから探し出す
 		SMTP_HOST = DNSMX(TO.split("@")[1]).replaceAll("^\\d+\\s+", "");;
 		
 		if (SMTP_HOST != null) {
+			System.out.println(SMTP_HOST);
 			CONNECT_SMTP();
 		} else {
 			throw new Error("MXレコードが見つからない");
@@ -47,7 +47,7 @@ public class TRANSFER {
 	}
 	
 	private void CONNECT_SMTP() throws UnknownHostException, IOException {
-		Socket SOCKET = new Socket(SMTP_HOST, PORT);
+		SOCKET = new Socket(SMTP_HOST, PORT);
 		
 		BR = new BufferedReader(new InputStreamReader(SOCKET.getInputStream()));
 		BW = new BufferedWriter(new OutputStreamWriter(SOCKET.getOutputStream()));
@@ -89,7 +89,43 @@ public class TRANSFER {
 		}
 	}
 	
-	public void SEND_MAIL(String SUBJECT, String TEXT) throws IOException {
+	public void SEND_MAIL(String MAILDATA) throws IOException {
+		if (RUNCMD("MAIL FROM:<" + FROM + ">", BR, BW).startsWith("250")) {
+			System.out.println("MAIL FROM");
+			if (RUNCMD("RCPT TO:<" + TO + ">", BR, BW).startsWith("250")) {
+				System.out.println("RCPT TO");
+				if (RUNCMD("DATA", BR, BW).startsWith("354")) {
+					System.out.println("メールデータを送信します");
+					//メール本体
+					BW.write(MAILDATA + "\r\n");
+					BW.flush();
+
+					String RESULT = RUNCMD(".", BR, BW);
+					if (RESULT.startsWith("250")) {
+						System.out.println("メール送信成功！切断します！");
+						RUNCMD("QUIT", BR, BW);
+						return;
+					} else {
+						RUNCMD("QUIT", BR, BW);
+						System.out.print(RESULT);
+						throw new Error("メールを送信を確定できず");
+					}
+				} else {
+					RUNCMD("QUIT", BR, BW);
+					throw new Error("DATAでエラー");
+				}
+			} else {
+				RUNCMD("QUIT", BR, BW);
+				throw new Error("RCPT TOでエラー");
+			}
+		} else {
+			RUNCMD("QUIT", BR, BW);
+			throw new Error("MAIL FROMでエラー");
+		}
+	}
+
+	/*
+	public void SEND_MAIL(String SUBJECT, String TEXT, String FROM_NAME) throws IOException {
 		if (RUNCMD("MAIL FROM:<" + FROM + ">", BR, BW).startsWith("250")) {
 			if (RUNCMD("RCPT TO:<" + TO + ">", BR, BW).startsWith("250")) {
 				if (RUNCMD("DATA", BR, BW).startsWith("354")) {
@@ -118,6 +154,7 @@ public class TRANSFER {
 		
 		throw new Error("メールを送信できませんでした");
 	}
+	*/
 
 	//DNSのMXレコードを検索する
 	private String DNSMX(String DOMAIN) {
@@ -169,10 +206,6 @@ public class TRANSFER {
 			}
 		}
 
-		System.out.println("-----------------[START]---------------------");
-		System.out.println(RESULT.toString());
-		System.out.println("-----------------[ END ]---------------------");
-		
 		return RESULT.toString();
 	}
 }
