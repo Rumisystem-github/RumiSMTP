@@ -22,6 +22,8 @@ import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.EHLO;
+import com.rumisystem.rumi_smtp.SMTP.COMMAND.NOOP;
+import com.rumisystem.rumi_smtp.SMTP.COMMAND.VRFY;
 
 public class SUBMISSION_SERVER {
 	private static int PORT = 25;
@@ -214,12 +216,12 @@ public class SUBMISSION_SERVER {
 												}
 
 												case "VRFY":{
-													BWW.SEND("502 Nha!");
+													VRFY.Main(BWW);
 													break;
 												}
 
 												case "NOOP":{
-													BWW.SEND("250 NOOOOOOOOOOP");
+													NOOP.Main(BWW);
 													break;
 												}
 
