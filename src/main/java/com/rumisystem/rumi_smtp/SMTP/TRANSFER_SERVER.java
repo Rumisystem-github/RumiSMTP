@@ -24,6 +24,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
+import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.EHLO;
 
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
@@ -70,6 +71,7 @@ public class TRANSFER_SERVER {
 										//最初のメッセージ
 										BWW.SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!");
 
+										MAILBOX MB = null;
 										String REMOTE_DOMAIN = null;
 										String MAIL_FROM = null;
 										List<String> MAIL_TO = new ArrayList<String>();
@@ -140,8 +142,13 @@ public class TRANSFER_SERVER {
 														MAIL_TO.add(TO);
 													}
 
-													//OK
-													BWW.SEND("250 OK!");
+													//メアドがあるか？
+													if (MAILBOX.VRFY(TO)) {
+														//OK
+														BWW.SEND("250 OK!");
+													} else {
+														BWW.SEND("550 meeru adoresu ga cukaenai");
+													}
 													break;
 												}
 
@@ -169,15 +176,21 @@ public class TRANSFER_SERVER {
 
 														//トレース情報
 														for(String TO:MAIL_TO) {
-															String ID = UUID.randomUUID().toString();
-															String TREES_DATA = "Received:\n"
-																	+ "FROM <" + REMOTE_DOMAIN + "> (<" + SESSION.getInetAddress().getHostAddress() + ">)\n"
-																	+ "VIA TCP\n"
-																	+ "WITH ESMTP\n"
-																	+ "ID <" + ID + ">\n"
-																	+ "FOR <" + TO + ">";
+															try {
+																String ID = UUID.randomUUID().toString();
+																String TREES_DATA = "Received:\n"
+																		+ "FROM <" + REMOTE_DOMAIN + "> (<" + SESSION.getInetAddress().getHostAddress() + ">)\n"
+																		+ "VIA TCP\n"
+																		+ "WITH ESMTP\n"
+																		+ "ID <" + ID + ">\n"
+																		+ "FOR <" + TO + ">";
 
-															//System.out.println("新しいメール：\n" + MAIL_FROM + "から" + TO + "へ\n" + TREES_DATA + "\n" + MAIL_TEXT);
+																//メールボックスを開く
+																MB = new MAILBOX(TO);
+																MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+															} catch (Exception EX) {
+																EX.printStackTrace();
+															}
 														}
 													} else {
 														BWW.SEND("500 MAIL ka RCPT wo tobashitana?");
