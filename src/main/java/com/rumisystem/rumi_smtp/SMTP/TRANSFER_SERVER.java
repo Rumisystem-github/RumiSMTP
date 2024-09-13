@@ -122,7 +122,7 @@ public class TRANSFER_SERVER {
 														BWW.SEND("250 OK!");
 														break;
 													} else {
-														BWW.SEND("500 meeru adoresu ga okashii");
+														BWW.SEND("800 meeru adoresu ga okashii");
 													}
 												}
 
