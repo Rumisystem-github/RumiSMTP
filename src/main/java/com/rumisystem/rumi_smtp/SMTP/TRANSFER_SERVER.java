@@ -49,7 +49,7 @@ public class TRANSFER_SERVER {
 					while(true) {
 						Socket SOCKET = SS.accept();
 						String IP = SOCKET.getInetAddress().getHostAddress();
-						LOG(LOG_TYPE.INFO, "New SESSION! IP:" + IP);
+						LOG(LOG_TYPE.INFO, "TRANSFER New SESSION! IP:" + IP);
 
 						//既にそのIPで接続しているか？
 						if (!CONNECTERE_IP.contains(IP)) {
