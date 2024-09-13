@@ -23,6 +23,9 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
+import com.rumisystem.rumi_smtp.SMTP.COMMAND.EHLO;
+
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 public class TRANSFER_SERVER {
@@ -55,9 +58,10 @@ public class TRANSFER_SERVER {
 									SSLSocket SSL_SESSION = null;
 									BufferedReader BR = new BufferedReader(new InputStreamReader(SESSION.getInputStream()));
 									PrintWriter BW = new PrintWriter(SESSION.getOutputStream(), true);
+									BW_WRITEER BWW = new BW_WRITEER(BW, IP);
 									
 									//最初のメッセージ
-									WRITE(BW, "220 rumiserver.com ESMTP RumiSMTP joukoso!", IP);
+									BWW.SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!");
 
 									String REMOTE_DOMAIN = null;
 									String MAIL_FROM = null;
@@ -72,39 +76,47 @@ public class TRANSFER_SERVER {
 
 										switch(CMD[0]) {
 											case "HELO":{
-												REMOTE_DOMAIN = CMD[1];
+												if (CMD[1] != null) {
+													REMOTE_DOMAIN = CMD[1];
 
-												WRITE(BW, "250 rumiserver.com kon nichi wa", IP);
+													BWW.SEND("250 rumiserver.com kon nichi wa");
+												} else {
+													BWW.SEND("500 Domain ga naizo!");
+												}
 												break;
 											}
 
 											case "EHLO":{
-												REMOTE_DOMAIN = CMD[1];
+												if (CMD[1] != null) {
+													REMOTE_DOMAIN = CMD[1];
 
-												WRITE(BW, "250-rumiserver.com Hello " + CMD[1], IP);
-												//WRITE(BW, "250-STARTTLS");
-												WRITE(BW, "250 SIZE " + MAX_SIZE, IP);
+													EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE);
+												} else {
+													BWW.SEND("500 Domain ga naizo!");
+												}
 												break;
 											}
 
 											case "MAIL":{
-												String FROM = CMD[1].split(":")[1];
-												
-												System.out.println(CMD[1].split(":")[1]);
-
-												//<>で囲われていない場合が有るらしいので
-												if (FROM.startsWith("<") && FROM.endsWith(">")) {
-													FROM = FROM.replace("<", "");
-													FROM = FROM.replace(">", "");
+												if (CMD[1].split(":")[1] != null) {
+													String FROM = CMD[1].split(":")[1];
 													
-													MAIL_FROM = FROM;
-												} else {
-													MAIL_FROM = FROM;
-												}
+													//<>で囲われていない場合が有るらしいので
+													if (FROM.startsWith("<") && FROM.endsWith(">")) {
+														FROM = FROM.replace("<", "");
+														FROM = FROM.replace(">", "");
+														
+														MAIL_FROM = FROM;
+													} else {
+														MAIL_FROM = FROM;
+													}
 
-												//OK
-												WRITE(BW, "250 OK!", IP);
-												break;
+													//OK
+													BWW.SEND("250 OK!");
+													break;
+												} else {
+													BWW.SEND("500 meeru adoresu ga okashii");
+												}
 											}
 
 											case "RCPT":{
@@ -122,20 +134,20 @@ public class TRANSFER_SERVER {
 												}
 
 												//OK
-												WRITE(BW, "250 OK!", IP);
+												BWW.SEND("250 OK!");
 												break;
 											}
 
 											case "DATA":{
 												if (MAIL_FROM != null && MAIL_TO.size() >= 0) {
-													WRITE(BW, "354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!", IP);
+													BWW.SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
 													StringBuilder SB = new StringBuilder();
 													String LT = "";
 													while((LT = BR.readLine()) != null) {
 														//.だけなら終了
 														if (!LT.equals(".")) {
 															if (SB.length() >= MAX_SIZE) {
-																WRITE(BW, "552 MAIL SIZE GA DEKAI! MAX HA" + MAX_SIZE + "DAJO!", IP);
+																BWW.SEND("552 MAIL SIZE GA DEKAI! MAX HA" + MAX_SIZE + "DAJO!");
 																break;
 															}
 
@@ -143,7 +155,7 @@ public class TRANSFER_SERVER {
 														} else {
 															//データ内容を全てMAIL_TEXTに入れる
 															MAIL_TEXT = SB.toString();
-															WRITE(BW, "250 OK! Okuttajo!", IP);
+															BWW.SEND("250 OK! Okuttajo!");
 															break;
 														}
 													}
@@ -161,7 +173,7 @@ public class TRANSFER_SERVER {
 														//System.out.println("新しいメール：\n" + MAIL_FROM + "から" + TO + "へ\n" + TREES_DATA + "\n" + MAIL_TEXT);
 													}
 												} else {
-													WRITE(BW, "500 MAIL ka RCPT wo tobashitana?", IP);
+													BWW.SEND("500 MAIL ka RCPT wo tobashitana?");
 													break;
 												}
 												break;
@@ -172,22 +184,22 @@ public class TRANSFER_SERVER {
 												MAIL_TO.clear();
 												MAIL_TEXT = null;
 												
-												WRITE(BW, "250 OK! Zenkeshi", IP);
+												BWW.SEND("250 OK! Zenkeshi");
 												break;
 											}
 
 											case "VRFY":{
-												WRITE(BW, "502 Nha!", IP);
+												BWW.SEND("502 Nha!");
 												break;
 											}
 
 											case "NOOP":{
-												WRITE(BW, "250 NOOOOOOOOOOP", IP);
+												BWW.SEND("250 NOOOOOOOOOOP");
 												break;
 											}
 
 											case "QUIT":{
-												WRITE(BW, "221 Sajonara!", IP);
+												BWW.SEND("221 Sajonara!");
 
 												if(SSL_SESSION == null) {
 													SESSION.close();
@@ -198,7 +210,7 @@ public class TRANSFER_SERVER {
 											}
 
 											default:{
-												WRITE(BW, "502 sono komando nai!", IP);
+												BWW.SEND("502 sono komando nai!");
 												break;
 											}
 										}
@@ -214,12 +226,5 @@ public class TRANSFER_SERVER {
 				}
 			}
 		}).start();
-	}
-	
-	private static void WRITE(PrintWriter BW, String TEXT, String IP) {
-		BW.print(TEXT + "\r\n");
-		BW.flush();
-		
-		LOG(LOG_TYPE.INFO, "->" + IP + "|" + TEXT);
 	}
 }
