@@ -35,13 +35,13 @@ public class TRANSFER_SERVER {
 	public static void Main() throws IOException {
 		PORT = CONFIG_DATA.get("TRANSFER").asInt("PORT");
 		MAX_SIZE = CONFIG_DATA.get("SMTP").asInt("MAX_SIZE");
-		
+
 		ServerSocket SS = new ServerSocket(PORT);
 
 		List<String> CONNECTERE_IP = new ArrayList<String>();
-		
+
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
