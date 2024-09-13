@@ -192,9 +192,12 @@ public class TRANSFER_SERVER {
 																		+ "ID <" + ID + ">\n"
 																		+ "FOR <" + TO + ">";
 
-																//メールボックスを開く
-																MB = new MAILBOX(TO);
-																MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+																//メアドは自分のドメインか？
+																if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
+																	//メールボックスを開く
+																	MB = new MAILBOX(TO);
+																	MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+																}
 															} catch (Exception EX) {
 																EX.printStackTrace();
 															}
