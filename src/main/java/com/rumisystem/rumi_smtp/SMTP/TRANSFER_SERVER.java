@@ -131,25 +131,30 @@ public class TRANSFER_SERVER {
 												}
 
 												case "RCPT":{
-													String TO = CMD[1].split(":")[1];
+													//Toの最大値を超えていないことをチェック
+													if (MAIL_TO.size() <= CONFIG_DATA.get("SMTP").asInt("MAX_TO_SIZE")) {
+														String TO = CMD[1].split(":")[1];
 
-													//<>で囲われていない場合が有るらしいので
-													if (TO.startsWith("<") && TO.endsWith(">")) {
-														Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
-														TO = TO.replace("<", "");
-														TO = TO.replace(">", "");
+														//<>で囲われていない場合が有るらしいので
+														if (TO.startsWith("<") && TO.endsWith(">")) {
+															Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
+															TO = TO.replace("<", "");
+															TO = TO.replace(">", "");
 
-														MAIL_TO.add(TO);
+															MAIL_TO.add(TO);
+														} else {
+															MAIL_TO.add(TO);
+														}
+
+														//メアドがあるか？
+														if (MAILBOX.VRFY(TO)) {
+															//OK
+															BWW.SEND("250 OK!");
+														} else {
+															BWW.SEND("550 meeru adoresu ga cukaenai");
+														}
 													} else {
-														MAIL_TO.add(TO);
-													}
-
-													//メアドがあるか？
-													if (MAILBOX.VRFY(TO)) {
-														//OK
-														BWW.SEND("250 OK!");
-													} else {
-														BWW.SEND("550 meeru adoresu ga cukaenai");
+														BWW.SEND("500 TO ga ooi");
 													}
 													break;
 												}

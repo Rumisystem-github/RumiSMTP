@@ -1,6 +1,7 @@
 package com.rumisystem.rumi_smtp;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 import java.io.File;
 
@@ -31,12 +32,12 @@ public class Main {
 			MAILBOX MB = new MAILBOX("rumisan@rumiserver.com");
 
 			//配送受付鯖起動
-			LOG(LOG_TYPE.PROCESS, "TRANSFER_SERVER kidou");
+			LOG(LOG_TYPE.PROCESS, "TRANSFER_SERVER PORT[" + CONFIG_DATA.get("TRANSFER").asString("PORT") + "] kidou");
 			TRANSFER_SERVER.Main();
 			LOG(LOG_TYPE.PROCESS_END_OK, "");
 
 			//提出受付鯖起動
-			LOG(LOG_TYPE.PROCESS, "SUBMISSION_SERVER kidou");
+			LOG(LOG_TYPE.PROCESS, "SUBMISSION_SERVER PORT[" + CONFIG_DATA.get("SUBMISSION").asString("PORT") + "] kidou");
 			SUBMISSION_SERVER.Main();
 			LOG(LOG_TYPE.PROCESS_END_OK, "");
 
