@@ -50,7 +50,7 @@ public class TRANSFER_SERVER {
 						String IP = SOCKET.getInetAddress().getHostAddress();
 						LOG(LOG_TYPE.INFO, "New SESSION! IP:" + IP);
 						new Thread(new Runnable() {
-							
+
 							@Override
 							public void run() {
 								try {
@@ -59,7 +59,7 @@ public class TRANSFER_SERVER {
 									BufferedReader BR = new BufferedReader(new InputStreamReader(SESSION.getInputStream()));
 									PrintWriter BW = new PrintWriter(SESSION.getOutputStream(), true);
 									BW_WRITEER BWW = new BW_WRITEER(BW, IP);
-									
+
 									//最初のメッセージ
 									BWW.SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!");
 
