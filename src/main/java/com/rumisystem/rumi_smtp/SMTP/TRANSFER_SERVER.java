@@ -171,7 +171,6 @@ public class TRANSFER_SERVER {
 															} else {
 																//データ内容を全てMAIL_TEXTに入れる
 																MAIL_TEXT = SB.toString();
-																BWW.SEND("250 OK! Okuttajo!");
 																break;
 															}
 														}
@@ -192,11 +191,16 @@ public class TRANSFER_SERVER {
 																	//メールボックスを開く
 																	MB = new MAILBOX(TO);
 																	MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+
+																	LOG(LOG_TYPE.OK, "MAIL[" + ID + "] SAVE!");
 																}
 															} catch (Exception EX) {
 																EX.printStackTrace();
 															}
 														}
+
+														//OK
+														BWW.SEND("250 OK! Okuttajo!");
 													} else {
 														BWW.SEND("500 MAIL ka RCPT wo tobashitana?");
 														break;

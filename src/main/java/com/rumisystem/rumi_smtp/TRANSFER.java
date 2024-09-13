@@ -26,17 +26,20 @@ public class TRANSFER {
 	private int PORT = 25;
 	private String FROM = "";
 	private String TO = "";
+	private String ID = "";
 	private Socket SOCKET;
 	
-	public TRANSFER(String FROM, String TO) throws UnknownHostException, IOException {
+	public TRANSFER(String FROM, String TO, String ID) throws UnknownHostException, IOException {
 		this.FROM = FROM;
 		this.TO = TO;
+		this.ID = ID;
 		
 		//MXレコードから探し出す
 		SMTP_HOST = DNSMX(TO.split("@")[1]).replaceAll("^\\d+\\s+", "");;
 		
 		if (SMTP_HOST != null) {
-			System.out.println(SMTP_HOST);
+			LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]MX REKOODO GET!");
+
 			CONNECT_SMTP();
 		} else {
 			throw new Error("MXレコードが見つからない");
@@ -51,15 +54,14 @@ public class TRANSFER {
 		
 		String FIRST_MSG = WAIT_MSG(BR, BW);
 		
-		System.out.println("最初のメッセージ：" + FIRST_MSG);
 		if (FIRST_MSG.startsWith("220")) {
-			System.out.println("220が送られました、通信を開始します！");
+			LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]220 OK!");
 			String EHLO_RESULT = RUNCMD("EHLO rumiserver.com", BR, BW);
 
 			//EHLOの返答の中にSTARTTLSがあるか
 			if (EHLO_RESULT.contains("STARTTLS")) {
 				//STARTTLS対応なのでSTARTTLSする
-				System.out.println("STARTTLSの対応を確認、TLS化します");
+				LOG(LOG_TYPE.INFO, "SEND MAIL[" + ID + "]STARTTLS START");
 				
 				if (RUNCMD("STARTTLS", BR, BW).startsWith("220")) {
 					SSLSocketFactory SSLFACTORY = (SSLSocketFactory) SSLSocketFactory.getDefault();
@@ -67,44 +69,47 @@ public class TRANSFER {
 
 					//SSL化する
 					SSLS.startHandshake();
-					System.out.println("SSLのハンドシェイクが完了した！");
+					LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]SSL HANDSHAKE OK!");
 
 					BR = new BufferedReader(new InputStreamReader(SSLS.getInputStream()));
 					BW = new BufferedWriter(new OutputStreamWriter(SSLS.getOutputStream()));
-					
+
 					RUNCMD("EHLO rumiserver.com", BR, BW);
 				} else {
-					System.out.println("STARTTLSできませんでした；；");
+					LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]STARTTLS ERR!!!");
 					throw new Error("STARTTLSエラー");
 				}
 			} else {
 				//STARTTLS非対応なのでそのままにする
 			}
 		} else {
-			System.out.print("相手が220を返しませんでした、切断します");
+			LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]CONNECT ERR! 220 zhanai!");
 			SOCKET.close();
 		}
 	}
 	
 	public void SEND_MAIL(String MAILDATA) throws IOException {
 		if (RUNCMD("MAIL FROM:<" + FROM + ">", BR, BW).startsWith("250")) {
-			System.out.println("MAIL FROM");
+			LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]MAIL FROM");
 			if (RUNCMD("RCPT TO:<" + TO + ">", BR, BW).startsWith("250")) {
-				System.out.println("RCPT TO");
+				LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]RCPT TO");
 				if (RUNCMD("DATA", BR, BW).startsWith("354")) {
-					System.out.println("メールデータを送信します");
+					LOG(LOG_TYPE.INFO, "SEND MAIL[" + ID + "]MAIL DATA SEND...");
 					//メール本体
 					BW.write(MAILDATA + "\r\n");
 					BW.flush();
 
 					String RESULT = RUNCMD(".", BR, BW);
 					if (RESULT.startsWith("250")) {
-						System.out.println("メール送信成功！切断します！");
+						LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]MAIL SEND!");
 						RUNCMD("QUIT", BR, BW);
 						return;
 					} else {
 						RUNCMD("QUIT", BR, BW);
-						System.out.print(RESULT);
+
+						LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]SEND ERR!");
+						LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]" + RESULT);
+
 						throw new Error("メールを送信を確定できず");
 					}
 				} else {

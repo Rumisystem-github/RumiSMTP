@@ -241,9 +241,11 @@ public class SUBMISSION_SERVER {
 																		//メールボックスを開く
 																		MB = new MAILBOX(TO);
 																		MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+
+																		LOG(LOG_TYPE.OK, "MAIL[" + ID + "] SAVE!");
 																	} else {
 																		//外部のメアド
-																		TRANSFER SENDER = new TRANSFER(MAIL_FROM, TO);
+																		TRANSFER SENDER = new TRANSFER(MAIL_FROM, TO, ID);
 																		SENDER.SEND_MAIL(TREES_DATA + "\r\n" + MAIL_TEXT);
 																	}
 																} catch (Exception EX) {
@@ -251,6 +253,7 @@ public class SUBMISSION_SERVER {
 																}
 															}
 
+															//OK
 															BWW.SEND("250 OK! Okuttajo!");
 														} else {
 															BWW.SEND("500 MAIL ka RCPT wo tobashitana? ato AUTH");
