@@ -71,6 +71,12 @@ public class SUBMISSION_SERVER {
 										String MAIL_FROM = null;
 										List<String> MAIL_TO = new ArrayList<String>();
 										String MAIL_TEXT = null;
+										Boolean AUTH_OK = false;
+
+										//ホワイトリストに有るなら認証済みにする
+										if (CONFIG_DATA.get("SUBMISSION").asString("WHITE_LIST").contains(IP)) {
+											AUTH_OK = true;
+										}
 
 										String LINE = "";
 										while((LINE = BR.readLine()) != null) {
@@ -94,15 +100,25 @@ public class SUBMISSION_SERVER {
 													if (CMD[1] != null) {
 														REMOTE_DOMAIN = CMD[1];
 
-														EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE);
+														EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE, 1);
 													} else {
 														BWW.SEND("500 Domain ga naizo!");
 													}
 													break;
 												}
 
+												case "AUTH":{
+													if (CMD[1].equals("PLAIN")) {
+														//TODO:認証実装
+														AUTH_OK = true;
+														BWW.SEND("235 Ninshou OK!");
+													} else {
+														BWW.SEND("502 PLAIN nomi");
+													}
+												}
+
 												case "MAIL":{
-													if (CMD[1].split(":")[1] != null) {
+													if (CMD[1].split(":")[1] != null && AUTH_OK) {
 														String FROM = CMD[1].split(":")[1];
 														
 														//<>で囲われていない場合が有るらしいので
@@ -124,36 +140,40 @@ public class SUBMISSION_SERVER {
 												}
 
 												case "RCPT":{
-													String TO = CMD[1].split(":")[1];
+													if (AUTH_OK) {
+														String TO = CMD[1].split(":")[1];
 
-													//<>で囲われていない場合が有るらしいので
-													if (TO.startsWith("<") && TO.endsWith(">")) {
-														Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
-														TO = TO.replace("<", "");
-														TO = TO.replace(">", "");
+														//<>で囲われていない場合が有るらしいので
+														if (TO.startsWith("<") && TO.endsWith(">")) {
+															Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
+															TO = TO.replace("<", "");
+															TO = TO.replace(">", "");
 
-														MAIL_TO.add(TO);
-													} else {
-														MAIL_TO.add(TO);
-													}
-
-													//自分のドメインならメアドが有るかチェックしない
-													if (!CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO)) {
-														//メアドがあるか？
-														if (MAILBOX.VRFY(TO)) {
-															//OK
-															BWW.SEND("250 OK!");
+															MAIL_TO.add(TO);
 														} else {
-															BWW.SEND("550 meeru adoresu ga cukaenai");
+															MAIL_TO.add(TO);
+														}
+
+														//自分のドメインならメアドが有るかチェックしない
+														if (!CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO)) {
+															//メアドがあるか？
+															if (MAILBOX.VRFY(TO)) {
+																//OK
+																BWW.SEND("250 OK!");
+															} else {
+																BWW.SEND("550 meeru adoresu ga cukaenai");
+															}
+														} else {
+															BWW.SEND("250 OK!");
 														}
 													} else {
-														BWW.SEND("250 OK!");
+														BWW.SEND("554 AUTH SHIRO");
 													}
 													break;
 												}
 
 												case "DATA":{
-													if (MAIL_FROM != null && MAIL_TO.size() >= 0) {
+													if (MAIL_FROM != null && MAIL_TO.size() >= 0 && AUTH_OK) {
 														BWW.SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
 														StringBuilder SB = new StringBuilder();
 														String LT = "";
@@ -200,7 +220,7 @@ public class SUBMISSION_SERVER {
 															}
 														}
 													} else {
-														BWW.SEND("500 MAIL ka RCPT wo tobashitana?");
+														BWW.SEND("500 MAIL ka RCPT wo tobashitana? ato AUTH");
 														break;
 													}
 													break;

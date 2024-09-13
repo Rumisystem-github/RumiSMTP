@@ -101,7 +101,7 @@ public class TRANSFER_SERVER {
 													if (CMD[1] != null) {
 														REMOTE_DOMAIN = CMD[1];
 
-														EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE);
+														EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE, 0);
 													} else {
 														BWW.SEND("500 Domain ga naizo!");
 													}
