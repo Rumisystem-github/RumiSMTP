@@ -7,6 +7,7 @@ import java.io.File;
 import com.rumisystem.rumi_java_lib.ArrayNode;
 import com.rumisystem.rumi_java_lib.CONFIG;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.SMTP.SUBMISSION_SERVER;
 import com.rumisystem.rumi_smtp.SMTP.TRANSFER_SERVER;
 
 public class Main {
@@ -29,6 +30,11 @@ public class Main {
 			//配送受付鯖起動
 			LOG(LOG_TYPE.PROCESS, "TRANSFER_SERVER kidou");
 			TRANSFER_SERVER.Main();
+			LOG(LOG_TYPE.PROCESS_END_OK, "");
+
+			//提出受付鯖起動
+			LOG(LOG_TYPE.PROCESS, "SUBMISSION_SERVER kidou");
+			SUBMISSION_SERVER.Main();
 			LOG(LOG_TYPE.PROCESS_END_OK, "");
 
 			//TRANSFER TF = new TRANSFER("noreply@rumiserver.com", "RumiSaabaa", "irjitgd@gmail.com");
