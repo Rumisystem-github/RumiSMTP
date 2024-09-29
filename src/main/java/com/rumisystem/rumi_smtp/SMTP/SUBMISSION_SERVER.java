@@ -16,6 +16,7 @@ import java.net.Socket;
 
 import javax.net.ssl.*;
 
+import com.rumisystem.rumi_java_lib.SANITIZE;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.TRANSFER;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
@@ -82,7 +83,7 @@ public class SUBMISSION_SERVER {
 										while((LINE = BR.readLine()) != null) {
 											String[] CMD = LINE.split(" ");
 
-											LOG(LOG_TYPE.INFO, "S<-" + IP + "|" + LINE);
+											LOG(LOG_TYPE.INFO, "S<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE));
 
 											switch(CMD[0]) {
 												case "HELO":{

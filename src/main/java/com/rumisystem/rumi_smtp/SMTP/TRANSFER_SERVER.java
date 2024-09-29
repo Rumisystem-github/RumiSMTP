@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLSocket;
 
+import com.rumisystem.rumi_java_lib.SANITIZE;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
@@ -78,7 +79,7 @@ public class TRANSFER_SERVER {
 										while((LINE = BR.readLine()) != null) {
 											String[] CMD = LINE.split(" ");
 
-											LOG(LOG_TYPE.INFO, "T<-" + IP + "|" + LINE);
+											LOG(LOG_TYPE.INFO, "T<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE));
 
 											switch(CMD[0]) {
 												case "HELO":{
