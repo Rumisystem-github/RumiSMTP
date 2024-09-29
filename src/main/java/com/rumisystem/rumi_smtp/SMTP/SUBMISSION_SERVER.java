@@ -231,11 +231,8 @@ public class SUBMISSION_SERVER {
 																try {
 																	//トレース情報
 																	String TREES_DATA = "Received: "
-																			+ "FROM <" + REMOTE_DOMAIN + "> (<" + SESSION.getInetAddress().getHostAddress() + ">) "
-																			+ "VIA TCP "
-																			+ "WITH ESMTP "
-																			+ "ID <" + ID + "> "
-																			+ "FOR <" + TO + ">";
+																			+ "from " + REMOTE_DOMAIN + "(" + SESSION.getInetAddress().getHostAddress() + ") by "
+																			+ "with ESMTP id " + ID + " for <" + TO + ">;";
 
 																	//自分のドメインならメールボックスを開いてメールを保存する
 																	if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
