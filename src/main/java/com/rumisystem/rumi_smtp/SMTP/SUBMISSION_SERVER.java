@@ -190,6 +190,7 @@ public class SUBMISSION_SERVER {
 															StringBuilder SB = new StringBuilder();
 															String LT = "";
 															while((LT = BR.readLine()) != null) {
+																System.out.println(LT);
 																//.だけなら終了
 																if (!LT.equals(".")) {
 																	if (SB.length() >= MAX_SIZE) {
@@ -238,7 +239,10 @@ public class SUBMISSION_SERVER {
 																	if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
 																		//メールボックスを開く
 																		MB = new MAILBOX(TO);
-																		MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+																		MB.MAIL_SAVE(ID, TREES_DATA
+																				+"\n"
+																				+"Message-ID: <" + ID + ">\n"
+																				+MAIL_TEXT);
 
 																		LOG(LOG_TYPE.OK, "MAIL[" + ID + "] SAVE!");
 																	} else {

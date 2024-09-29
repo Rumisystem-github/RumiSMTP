@@ -15,7 +15,7 @@ public class MAIL_CHECK {
 			}
 			
 			//ヘッダーを読む
-			String KEY = TEXT.split(":")[0];
+			String KEY = TEXT.split(":")[0].toUpperCase();
 			String VAL = TEXT.split(":")[1];
 			MAIL_HEADER.put(KEY.toUpperCase(), VAL);
 		}
@@ -25,13 +25,17 @@ public class MAIL_CHECK {
 		if (MAIL_HEADER.get("FROM") != null) {
 			String FROM_MAILADDRES = MAIL_HEADER.get("FROM");
 
-			Pattern REGEX = Pattern.compile("<(.*?)>");
-			Matcher MATCHER = REGEX.matcher(FROM_MAILADDRES);
-			
-			if (MATCHER.find()) {
-				return MATCHER.group(1);
+			if (FROM_MAILADDRES.contains("<") && FROM_MAILADDRES.contains("<")) {
+				Pattern REGEX = Pattern.compile("<(.*?)>");
+				Matcher MATCHER = REGEX.matcher(FROM_MAILADDRES);
+				
+				if (MATCHER.find()) {
+					return MATCHER.group(1);
+				} else {
+					return null;
+				}
 			} else {
-				return null;
+				return FROM_MAILADDRES.replaceAll(" ", "");
 			}
 		} else {
 			return null;
