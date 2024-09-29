@@ -188,7 +188,10 @@ public class TRANSFER_SERVER {
 																if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
 																	//メールボックスを開く
 																	MB = new MAILBOX(TO);
-																	MB.MAIL_SAVE(ID, TREES_DATA + "\n" + MAIL_TEXT);
+																	MB.MAIL_SAVE(ID, TREES_DATA
+																			+"\n"
+																			+"Message-ID: <" + ID + ">\n"
+																			+MAIL_TEXT);
 
 																	LOG(LOG_TYPE.OK, "MAIL[" + ID + "] SAVE!");
 																}
