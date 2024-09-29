@@ -180,12 +180,9 @@ public class TRANSFER_SERVER {
 														for(String TO:MAIL_TO) {
 															try {
 																String ID = UUID.randomUUID().toString();
-																String TREES_DATA = "Received:\n"
-																		+ "FROM <" + REMOTE_DOMAIN + "> (<" + SESSION.getInetAddress().getHostAddress() + ">)\n"
-																		+ "VIA TCP\n"
-																		+ "WITH ESMTP\n"
-																		+ "ID <" + ID + ">\n"
-																		+ "FOR <" + TO + ">";
+																String TREES_DATA = "Received: "
+																		+ "from " + REMOTE_DOMAIN + "(" + SESSION.getInetAddress().getHostAddress() + ") by "
+																		+ "with ESMTP id " + ID + " for <" + TO + ">;";
 
 																//メアドは自分のドメインか？
 																if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
