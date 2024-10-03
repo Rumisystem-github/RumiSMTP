@@ -9,8 +9,8 @@ public class MAIL_CHECK {
 
 	public MAIL_CHECK(String MAILDATA) {
 		for(String TEXT:MAILDATA.split("\n")) {
-			//空欄が来たら死ぬ
-			if (TEXT.equals("")) {
+			//1以下ということはヘッダーではないので終了
+			if (TEXT.split(":").length <= 1) {
 				break;
 			}
 			
