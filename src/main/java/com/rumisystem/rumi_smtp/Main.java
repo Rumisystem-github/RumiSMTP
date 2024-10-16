@@ -7,6 +7,7 @@ import java.io.File;
 import com.rumisystem.rumi_java_lib.ArrayNode;
 import com.rumisystem.rumi_java_lib.CONFIG;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.MODULE.ACCOUNT;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
 import com.rumisystem.rumi_smtp.SMTP.SUBMISSION_SERVER;
 import com.rumisystem.rumi_smtp.SMTP.TRANSFER_SERVER;
@@ -27,8 +28,6 @@ public class Main {
 				LOG(LOG_TYPE.PROCESS_END_FAILED, "ERR! Config.ini ga NAI!!!!!!!!!!!!!!");
 				System.exit(1);
 			}
-			
-			MAILBOX MB = new MAILBOX("rumisan@rumiserver.com");
 
 			//配送受付鯖起動
 			LOG(LOG_TYPE.PROCESS, "TRANSFER_SERVER PORT[" + CONFIG_DATA.get("TRANSFER").asString("PORT") + "] kidou");

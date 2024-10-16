@@ -4,6 +4,7 @@ import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -19,6 +20,7 @@ import javax.net.ssl.*;
 import com.rumisystem.rumi_java_lib.SANITIZE;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.TRANSFER;
+import com.rumisystem.rumi_smtp.MODULE.ACCOUNT;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
 import com.rumisystem.rumi_smtp.MODULE.MAIL_CHECK;
@@ -110,9 +112,25 @@ public class SUBMISSION_SERVER {
 
 												case "AUTH":{
 													if (CMD[1].equals("PLAIN")) {
-														//TODO:認証実装
-														AUTH_OK = true;
-														BWW.SEND("235 Ninshou OK!");
+														//ログインデータが有るか
+														if (CMD[2] != null) {
+															//AUTH PLAINのデータを読み取る(Nullで区切る)
+															String[] LOGIN_DATA = new String(Base64.getDecoder().decode(CMD[2])).split("\0");
+
+															//ログインデータがNull区切りで計3つあるか
+															if (LOGIN_DATA.length == 3) {
+																if (new ACCOUNT(LOGIN_DATA[1]).LOGIN(LOGIN_DATA[2])) {
+																	AUTH_OK = true;
+																	BWW.SEND("235 Ninshou OK!");
+																} else {
+																	BWW.SEND("502 Fuck");
+																}
+															} else {
+																BWW.SEND("502 Fuck");
+															}
+														} else {
+															BWW.SEND("502 Fuck");
+														}
 													} else {
 														BWW.SEND("502 PLAIN nomi");
 													}
