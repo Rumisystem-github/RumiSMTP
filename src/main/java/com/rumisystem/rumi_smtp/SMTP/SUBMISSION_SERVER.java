@@ -27,7 +27,7 @@ import com.rumisystem.rumi_smtp.SMTP.COMMAND.NOOP;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.VRFY;
 
 public class SUBMISSION_SERVER {
-	private static int PORT = 25;
+	private static int PORT = 587;
 	private static int MAX_SIZE = 0;
 
 	public static void Main() throws Exception {
