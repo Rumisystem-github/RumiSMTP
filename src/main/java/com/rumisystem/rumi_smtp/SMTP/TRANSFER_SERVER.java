@@ -1,6 +1,7 @@
 package com.rumisystem.rumi_smtp.SMTP;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_SYSTEM.LOG_PRINT;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import javax.net.ssl.SSLSocket;
 
 import com.rumisystem.rumi_java_lib.SANITIZE;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_LEVEL;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
 import com.rumisystem.rumi_smtp.SMTP.COMMAND.EHLO;
@@ -47,7 +49,7 @@ public class TRANSFER_SERVER {
 					while(true) {
 						Socket SOCKET = SS.accept();
 						String IP = SOCKET.getInetAddress().getHostAddress();
-						LOG(LOG_TYPE.INFO, "TRANSFER New SESSION! IP:" + IP);
+						LOG_PRINT("TRANSFER New SESSION! IP:" + IP, LOG_TYPE.INFO, LOG_LEVEL.INFO);
 
 						//既にそのIPで接続しているか？
 						if (!CONNECTERE_IP.contains(IP)) {
@@ -79,7 +81,7 @@ public class TRANSFER_SERVER {
 										while((LINE = BR.readLine()) != null) {
 											String[] CMD = LINE.split(" ");
 
-											LOG(LOG_TYPE.INFO, "T<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE));
+											LOG_PRINT("T<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE), LOG_TYPE.INFO, LOG_LEVEL.DEBUG);
 
 											switch(CMD[0]) {
 												case "HELO":{
@@ -193,7 +195,7 @@ public class TRANSFER_SERVER {
 																			+"Message-ID: <" + ID + ">\n"
 																			+MAIL_TEXT);
 
-																	LOG(LOG_TYPE.OK, "MAIL[" + ID + "] SAVE!");
+																	LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
 																}
 															} catch (Exception EX) {
 																EX.printStackTrace();

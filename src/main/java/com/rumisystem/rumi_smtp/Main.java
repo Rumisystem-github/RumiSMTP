@@ -1,12 +1,14 @@
 package com.rumisystem.rumi_smtp;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_SYSTEM.LOG_PRINT;
 
 import java.io.File;
 
 import com.rumisystem.rumi_java_lib.ArrayNode;
 import com.rumisystem.rumi_java_lib.CONFIG;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_LEVEL;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
 import com.rumisystem.rumi_smtp.SMTP.SUBMISSION_SERVER;
@@ -30,14 +32,14 @@ public class Main {
 			}
 
 			//配送受付鯖起動
-			LOG(LOG_TYPE.PROCESS, "TRANSFER_SERVER PORT[" + CONFIG_DATA.get("TRANSFER").asString("PORT") + "] kidou");
+			LOG_PRINT("TRANSFER_SERVER PORT[" + CONFIG_DATA.get("TRANSFER").asString("PORT") + "] kidou", LOG_TYPE.PROCESS, LOG_LEVEL.INFO);
 			TRANSFER_SERVER.Main();
-			LOG(LOG_TYPE.PROCESS_END_OK, "");
+			LOG_PRINT("", LOG_TYPE.PROCESS_END_OK, LOG_LEVEL.INFO);
 
 			//提出受付鯖起動
-			LOG(LOG_TYPE.PROCESS, "SUBMISSION_SERVER PORT[" + CONFIG_DATA.get("SUBMISSION").asString("PORT") + "] kidou");
+			LOG_PRINT("SUBMISSION_SERVER PORT[" + CONFIG_DATA.get("SUBMISSION").asString("PORT") + "] kidou", LOG_TYPE.PROCESS, LOG_LEVEL.INFO);
 			SUBMISSION_SERVER.Main();
-			LOG(LOG_TYPE.PROCESS_END_OK, "");
+			LOG_PRINT("", LOG_TYPE.PROCESS_END_OK, LOG_LEVEL.INFO);
 
 			/*
 			TRANSFER TF = new TRANSFER("noreply@rumiserver.com", "rumisan_@outlook.com");

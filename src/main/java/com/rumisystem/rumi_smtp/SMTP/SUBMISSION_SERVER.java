@@ -1,6 +1,7 @@
 package com.rumisystem.rumi_smtp.SMTP;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_SYSTEM.LOG_PRINT;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import javax.net.ssl.*;
 import com.rumisystem.rumi_java_lib.SANITIZE;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.TRANSFER;
+import com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_LEVEL;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT;
 import com.rumisystem.rumi_smtp.MODULE.BW_WRITEER;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
@@ -48,7 +50,7 @@ public class SUBMISSION_SERVER {
 					while(true) {
 						Socket SOCKET = SS.accept();
 						String IP = SOCKET.getInetAddress().getHostAddress();
-						LOG(LOG_TYPE.INFO, "SUBMISSION New SESSION! IP:" + IP);
+						LOG_PRINT("SUBMISSION New SESSION! IP:" + IP, LOG_TYPE.INFO, LOG_LEVEL.INFO);
 						
 						//既にそのIPで接続しているか？
 						if (!CONNECTERE_IP.contains(IP)) {
@@ -85,7 +87,7 @@ public class SUBMISSION_SERVER {
 										while((LINE = BR.readLine()) != null) {
 											String[] CMD = LINE.split(" ");
 
-											LOG(LOG_TYPE.INFO, "S<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE));
+											LOG_PRINT("S<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE), LOG_TYPE.INFO, LOG_LEVEL.DEBUG);
 
 											switch(CMD[0]) {
 												case "HELO":{
@@ -262,7 +264,7 @@ public class SUBMISSION_SERVER {
 																				+"Message-ID: <" + ID + ">\n"
 																				+MAIL_TEXT);
 
-																		LOG(LOG_TYPE.OK, "MAIL[" + ID + "] SAVE!");
+																		LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
 																	} else {
 																		//外部のメアド
 																		TRANSFER SENDER = new TRANSFER(MAIL_FROM, TO, ID);

@@ -17,7 +17,10 @@ import java.net.UnknownHostException;
 import java.util.Hashtable;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_SYSTEM.LOG_PRINT;
+
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_LEVEL;
 
 public class TRANSFER {
 	private BufferedReader BR = null;
@@ -38,7 +41,7 @@ public class TRANSFER {
 		SMTP_HOST = DNSMX(TO.split("@")[1]).replaceAll("^\\d+\\s+", "");;
 		
 		if (SMTP_HOST != null) {
-			LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]MX REKOODO GET!");
+			LOG_PRINT("SEND MAIL[" + ID + "]MX REKOODO GET!", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
 
 			CONNECT_SMTP();
 		} else {
@@ -55,60 +58,60 @@ public class TRANSFER {
 		String FIRST_MSG = WAIT_MSG(BR, BW);
 		
 		if (FIRST_MSG.startsWith("220")) {
-			LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]220 OK!");
+			LOG_PRINT("SEND MAIL[" + ID + "]220 OK!", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
 			String EHLO_RESULT = RUNCMD("EHLO rumiserver.com", BR, BW);
 
 			//EHLOの返答の中にSTARTTLSがあるか
 			if (EHLO_RESULT.contains("STARTTLS")) {
 				//STARTTLS対応なのでSTARTTLSする
-				LOG(LOG_TYPE.INFO, "SEND MAIL[" + ID + "]STARTTLS START");
-				
+				LOG_PRINT("SEND MAIL[" + ID + "]STARTTLS START", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
+
 				if (RUNCMD("STARTTLS", BR, BW).startsWith("220")) {
 					SSLSocketFactory SSLFACTORY = (SSLSocketFactory) SSLSocketFactory.getDefault();
 					SSLSocket SSLS = (SSLSocket) SSLFACTORY.createSocket(SOCKET, SMTP_HOST, PORT, true);
 
 					//SSL化する
 					SSLS.startHandshake();
-					LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]SSL HANDSHAKE OK!");
+					LOG_PRINT("SEND MAIL[" + ID + "]SSL HANDSHAKE OK!", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
 
 					BR = new BufferedReader(new InputStreamReader(SSLS.getInputStream()));
 					BW = new BufferedWriter(new OutputStreamWriter(SSLS.getOutputStream()));
 
 					RUNCMD("EHLO rumiserver.com", BR, BW);
 				} else {
-					LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]STARTTLS ERR!!!");
+					LOG_PRINT("SEND MAIL[" + ID + "]STARTTLS ERR!!!", LOG_TYPE.FAILED, LOG_LEVEL.DEBUG);
 					throw new Error("STARTTLSエラー");
 				}
 			} else {
 				//STARTTLS非対応なのでそのままにする
 			}
 		} else {
-			LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]CONNECT ERR! 220 zhanai!");
+			LOG_PRINT("SEND MAIL[" + ID + "]CONNECT ERR! 220 zhanai!", LOG_TYPE.FAILED, LOG_LEVEL.DEBUG);
 			SOCKET.close();
 		}
 	}
 	
 	public void SEND_MAIL(String MAILDATA) throws IOException {
 		if (RUNCMD("MAIL FROM:<" + FROM + ">", BR, BW).startsWith("250")) {
-			LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]MAIL FROM");
+			LOG_PRINT("SEND MAIL[" + ID + "]MAIL FROM", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
 			if (RUNCMD("RCPT TO:<" + TO + ">", BR, BW).startsWith("250")) {
-				LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]RCPT TO");
+				LOG_PRINT("SEND MAIL[" + ID + "]RCPT TO", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
 				if (RUNCMD("DATA", BR, BW).startsWith("354")) {
-					LOG(LOG_TYPE.INFO, "SEND MAIL[" + ID + "]MAIL DATA SEND...");
+					LOG_PRINT("SEND MAIL[" + ID + "]MAIL DATA SEND...", LOG_TYPE.INFO, LOG_LEVEL.DEBUG);
 					//メール本体
 					BW.write(MAILDATA + "\r\n");
 					BW.flush();
 
 					String RESULT = RUNCMD(".", BR, BW);
 					if (RESULT.startsWith("250")) {
-						LOG(LOG_TYPE.OK, "SEND MAIL[" + ID + "]MAIL SEND!");
+						LOG_PRINT("SEND MAIL[" + ID + "]MAIL SEND!", LOG_TYPE.OK, LOG_LEVEL.DEBUG);
 						RUNCMD("QUIT", BR, BW);
 						return;
 					} else {
 						RUNCMD("QUIT", BR, BW);
 
-						LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]SEND ERR!");
-						LOG(LOG_TYPE.FAILED, "SEND MAIL[" + ID + "]" + RESULT);
+						LOG_PRINT("SEND MAIL[" + ID + "]SEND ERR!", LOG_TYPE.FAILED, LOG_LEVEL.DEBUG);
+						LOG_PRINT("SEND MAIL[" + ID + "]" + RESULT, LOG_TYPE.FAILED, LOG_LEVEL.DEBUG);
 
 						throw new Error("メールを送信を確定できず");
 					}
