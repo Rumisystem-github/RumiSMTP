@@ -67,7 +67,7 @@ public class SUBMISSION_SERVER {
 										BufferedReader BR = new BufferedReader(new InputStreamReader(SESSION.getInputStream()));
 										PrintWriter BW = new PrintWriter(SESSION.getOutputStream(), true);
 										BW_WRITEER BWW = new BW_WRITEER(BW, IP, "S");
-										
+
 										//最初のメッセージ
 										BWW.SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!");
 
@@ -85,45 +85,49 @@ public class SUBMISSION_SERVER {
 
 										String LINE = "";
 										while((LINE = BR.readLine()) != null) {
-											String[] CMD = LINE.split(" ");
+											try {
+												String[] CMD = LINE.split(" ");
 
-											LOG_PRINT("S<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE), LOG_TYPE.INFO, LOG_LEVEL.DEBUG);
+												LOG_PRINT("S<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(LINE), LOG_TYPE.INFO, LOG_LEVEL.DEBUG);
 
-											switch(CMD[0]) {
-												case "HELO":{
-													if (CMD[1] != null) {
-														REMOTE_DOMAIN = CMD[1];
+												switch(CMD[0]) {
+													case "HELO":{
+														if (CMD[1] != null) {
+															REMOTE_DOMAIN = CMD[1];
 
-														BWW.SEND("250 rumiserver.com kon nichi wa");
-													} else {
-														BWW.SEND("500 Domain ga naizo!");
+															BWW.SEND("250 rumiserver.com kon nichi wa");
+														} else {
+															BWW.SEND("500 Domain ga naizo!");
+														}
+														break;
 													}
-													break;
-												}
 
-												case "EHLO":{
-													if (CMD[1] != null) {
-														REMOTE_DOMAIN = CMD[1];
+													case "EHLO":{
+														if (CMD[1] != null) {
+															REMOTE_DOMAIN = CMD[1];
 
-														EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE, 1);
-													} else {
-														BWW.SEND("500 Domain ga naizo!");
+															EHLO.Main(BWW, REMOTE_DOMAIN, MAX_SIZE, 1);
+														} else {
+															BWW.SEND("500 Domain ga naizo!");
+														}
+														break;
 													}
-													break;
-												}
 
-												case "AUTH":{
-													if (CMD[1].equals("PLAIN")) {
-														//ログインデータが有るか
-														if (CMD[2] != null) {
-															//AUTH PLAINのデータを読み取る(Nullで区切る)
-															String[] LOGIN_DATA = new String(Base64.getDecoder().decode(CMD[2])).split("\0");
+													case "AUTH":{
+														if (CMD[1].equals("PLAIN")) {
+															//ログインデータが有るか
+															if (CMD[2] != null) {
+																//AUTH PLAINのデータを読み取る(Nullで区切る)
+																String[] LOGIN_DATA = new String(Base64.getDecoder().decode(CMD[2])).split("\0");
 
-															//ログインデータがNull区切りで計3つあるか
-															if (LOGIN_DATA.length == 3) {
-																if (new ACCOUNT(LOGIN_DATA[1]).LOGIN(LOGIN_DATA[2])) {
-																	AUTH_OK = true;
-																	BWW.SEND("235 Ninshou OK!");
+																//ログインデータがNull区切りで計3つあるか
+																if (LOGIN_DATA.length == 3) {
+																	if (new ACCOUNT(LOGIN_DATA[1]).LOGIN(LOGIN_DATA[2])) {
+																		AUTH_OK = true;
+																		BWW.SEND("235 Ninshou OK!");
+																	} else {
+																		BWW.SEND("502 Fuck");
+																	}
 																} else {
 																	BWW.SEND("502 Fuck");
 																}
@@ -131,201 +135,202 @@ public class SUBMISSION_SERVER {
 																BWW.SEND("502 Fuck");
 															}
 														} else {
-															BWW.SEND("502 Fuck");
+															BWW.SEND("502 PLAIN nomi");
 														}
-													} else {
-														BWW.SEND("502 PLAIN nomi");
 													}
-												}
 
-												case "MAIL":{
-													if (AUTH_OK) {
-														if (CMD[1].split(":")[1] != null) {
-															String FROM = CMD[1].split(":")[1];
-															
-															//<>で囲われていない場合が有るらしいので
-															if (FROM.startsWith("<") && FROM.endsWith(">")) {
-																FROM = FROM.replace("<", "");
-																FROM = FROM.replace(">", "");
+													case "MAIL":{
+														if (AUTH_OK) {
+															if (CMD[1].split(":")[1] != null) {
+																String FROM = CMD[1].split(":")[1];
 																
-																MAIL_FROM = FROM;
-															} else {
-																MAIL_FROM = FROM;
-															}
-
-															//OK
-															BWW.SEND("250 OK!");
-															break;
-														} else {
-															BWW.SEND("800 meeru adoresu ga okashii");
-														}
-													} else {
-														BWW.SEND("535 AUTH SHIRO");
-													}
-													break;
-												}
-
-												case "RCPT":{
-													if (AUTH_OK) {
-														//Toの最大値を超えていないことをチェック
-														if (MAIL_TO.size() <= CONFIG_DATA.get("SMTP").asInt("MAX_TO_SIZE")) {
-															String TO = CMD[1].split(":")[1];
-
-															//<>で囲われていない場合が有るらしいので
-															if (TO.startsWith("<") && TO.endsWith(">")) {
-																Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
-																TO = TO.replace("<", "");
-																TO = TO.replace(">", "");
-
-																MAIL_TO.add(TO);
-															} else {
-																MAIL_TO.add(TO);
-															}
-
-															//自分のドメインならメアドが有るかチェックしない
-															if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
-																//メアドがあるか？
-																if (MAILBOX.VRFY(TO)) {
-																	//OK
-																	BWW.SEND("250 OK!");
+																//<>で囲われていない場合が有るらしいので
+																if (FROM.startsWith("<") && FROM.endsWith(">")) {
+																	FROM = FROM.replace("<", "");
+																	FROM = FROM.replace(">", "");
+																	
+																	MAIL_FROM = FROM;
 																} else {
-																	BWW.SEND("550 meeru adoresu ga cukaenai");
+																	MAIL_FROM = FROM;
+																}
+
+																//OK
+																BWW.SEND("250 OK!");
+																break;
+															} else {
+																BWW.SEND("800 meeru adoresu ga okashii");
+															}
+														} else {
+															BWW.SEND("535 AUTH SHIRO");
+														}
+														break;
+													}
+
+													case "RCPT":{
+														if (AUTH_OK) {
+															//Toの最大値を超えていないことをチェック
+															if (MAIL_TO.size() <= CONFIG_DATA.get("SMTP").asInt("MAX_TO_SIZE")) {
+																String TO = CMD[1].split(":")[1];
+
+																//<>で囲われていない場合が有るらしいので
+																if (TO.startsWith("<") && TO.endsWith(">")) {
+																	Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
+																	TO = TO.replace("<", "");
+																	TO = TO.replace(">", "");
+
+																	MAIL_TO.add(TO);
+																} else {
+																	MAIL_TO.add(TO);
+																}
+
+																//自分のドメインならメアドが有るかチェックしない
+																if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
+																	//メアドがあるか？
+																	if (MAILBOX.VRFY(TO)) {
+																		//OK
+																		BWW.SEND("250 OK!");
+																	} else {
+																		BWW.SEND("550 meeru adoresu ga cukaenai");
+																	}
+																} else {
+																	BWW.SEND("250 OK!");
 																}
 															} else {
-																BWW.SEND("250 OK!");
+																BWW.SEND("500 TO ga ooi");
 															}
 														} else {
-															BWW.SEND("500 TO ga ooi");
+															BWW.SEND("535 AUTH SHIRO");
 														}
-													} else {
-														BWW.SEND("535 AUTH SHIRO");
-													}
-													break;
-												} 
+														break;
+													} 
 
-												case "DATA":{
-													if (AUTH_OK) {
-														if (MAIL_FROM != null && MAIL_TO.size() >= 0) {
-															BWW.SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
-															StringBuilder SB = new StringBuilder();
-															String LT = "";
-															while((LT = BR.readLine()) != null) {
-																System.out.println(LT);
-																//.だけなら終了
-																if (!LT.equals(".")) {
-																	if (SB.length() >= MAX_SIZE) {
-																		BWW.SEND("552 MAIL SIZE GA DEKAI! MAX HA" + MAX_SIZE + "DAJO!");
+													case "DATA":{
+														if (AUTH_OK) {
+															if (MAIL_FROM != null && MAIL_TO.size() >= 0) {
+																BWW.SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!");
+																StringBuilder SB = new StringBuilder();
+																String LT = "";
+																while((LT = BR.readLine()) != null) {
+																	System.out.println(LT);
+																	//.だけなら終了
+																	if (!LT.equals(".")) {
+																		if (SB.length() >= MAX_SIZE) {
+																			BWW.SEND("552 MAIL SIZE GA DEKAI! MAX HA" + MAX_SIZE + "DAJO!");
+																			break;
+																		}
+
+																		SB.append(LT + "\n");
+																	} else {
+																		//データ内容を全てMAIL_TEXTに入れる
+																		MAIL_TEXT = SB.toString();
 																		break;
 																	}
+																}
 
-																	SB.append(LT + "\n");
+																//メールヘッダーを解析する
+																MAIL_CHECK MC = new MAIL_CHECK(MAIL_TEXT);
+
+																//FROMヘッダーがあるか、そしてMAIL FROMと同じかをチェック
+																String MC_FROM = MC.FROM();
+																if (MC_FROM != null) {
+																	if (!MC_FROM.equals(MAIL_FROM)) {
+																		//一致していない
+																		BWW.SEND("550-Mail format ga okashii");
+																		BWW.SEND("550 From header ga husei");
+																		break;
+																	}
 																} else {
-																	//データ内容を全てMAIL_TEXTに入れる
-																	MAIL_TEXT = SB.toString();
-																	break;
-																}
-															}
-
-															//メールヘッダーを解析する
-															MAIL_CHECK MC = new MAIL_CHECK(MAIL_TEXT);
-
-															//FROMヘッダーがあるか、そしてMAIL FROMと同じかをチェック
-															String MC_FROM = MC.FROM();
-															if (MC_FROM != null) {
-																if (!MC_FROM.equals(MAIL_FROM)) {
-																	//一致していない
+																	//存在しない
 																	BWW.SEND("550-Mail format ga okashii");
-																	BWW.SEND("550 From header ga husei");
+																	BWW.SEND("550 From header ga nai");
 																	break;
 																}
+
+																//メールのID
+																String ID = UUID.randomUUID().toString();
+
+																for(String TO:MAIL_TO) {
+																	try {
+																		//トレース情報
+																		String TREES_DATA = "Received: "
+																				+ "from " + REMOTE_DOMAIN + "(" + SESSION.getInetAddress().getHostAddress() + ") by "
+																				+ "with ESMTP id " + ID + " for <" + TO + ">;";
+
+																		//自分のドメインならメールボックスを開いてメールを保存する
+																		if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
+																			//メールボックスを開く
+																			MB = new MAILBOX(TO);
+																			MB.MAIL_SAVE(ID, TREES_DATA
+																					+"\n"
+																					+"Message-ID: <" + ID + ">\n"
+																					+MAIL_TEXT);
+
+																			LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
+																		} else {
+																			//外部のメアド
+																			TRANSFER SENDER = new TRANSFER(MAIL_FROM, TO, ID);
+																			SENDER.SEND_MAIL(TREES_DATA + "\r\n" + MAIL_TEXT);
+																		}
+																	} catch (Exception EX) {
+																		EX.printStackTrace();
+																	}
+																}
+
+																//OK
+																BWW.SEND("250 OK! Okuttajo!");
 															} else {
-																//存在しない
-																BWW.SEND("550-Mail format ga okashii");
-																BWW.SEND("550 From header ga nai");
+																BWW.SEND("500 MAIL ka RCPT wo tobashitana? ato AUTH");
 																break;
 															}
-
-															//メールのID
-															String ID = UUID.randomUUID().toString();
-
-															for(String TO:MAIL_TO) {
-																try {
-																	//トレース情報
-																	String TREES_DATA = "Received: "
-																			+ "from " + REMOTE_DOMAIN + "(" + SESSION.getInetAddress().getHostAddress() + ") by "
-																			+ "with ESMTP id " + ID + " for <" + TO + ">;";
-
-																	//自分のドメインならメールボックスを開いてメールを保存する
-																	if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
-																		//メールボックスを開く
-																		MB = new MAILBOX(TO);
-																		MB.MAIL_SAVE(ID, TREES_DATA
-																				+"\n"
-																				+"Message-ID: <" + ID + ">\n"
-																				+MAIL_TEXT);
-
-																		LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
-																	} else {
-																		//外部のメアド
-																		TRANSFER SENDER = new TRANSFER(MAIL_FROM, TO, ID);
-																		SENDER.SEND_MAIL(TREES_DATA + "\r\n" + MAIL_TEXT);
-																	}
-																} catch (Exception EX) {
-																	EX.printStackTrace();
-																}
-															}
-
-															//OK
-															BWW.SEND("250 OK! Okuttajo!");
 														} else {
-															BWW.SEND("500 MAIL ka RCPT wo tobashitana? ato AUTH");
-															break;
+															BWW.SEND("535 AUTH SHIRO");
 														}
-													} else {
-														BWW.SEND("535 AUTH SHIRO");
+														break;
 													}
-													break;
-												}
-												
-												case "RSET":{
-													MAIL_FROM = null;
-													MAIL_TO.clear();
-													MAIL_TEXT = null;
 													
-													BWW.SEND("250 OK! Zenkeshi");
-													break;
-												}
-
-												case "VRFY":{
-													VRFY.Main(BWW);
-													break;
-												}
-
-												case "NOOP":{
-													NOOP.Main(BWW);
-													break;
-												}
-
-												case "QUIT":{
-													BWW.SEND("221 Sajonara!");
-													
-													CONNECTERE_IP.remove(IP);
-
-													if(SSL_SESSION == null) {
-														SESSION.close();
-													} else {
-														SSL_SESSION.close();
+													case "RSET":{
+														MAIL_FROM = null;
+														MAIL_TO.clear();
+														MAIL_TEXT = null;
+														
+														BWW.SEND("250 OK! Zenkeshi");
+														break;
 													}
-													return;
-												}
 
-												default:{
-													BWW.SEND("502 sono komando nai!");
-													break;
+													case "VRFY":{
+														VRFY.Main(BWW);
+														break;
+													}
+
+													case "NOOP":{
+														NOOP.Main(BWW);
+														break;
+													}
+
+													case "QUIT":{
+														BWW.SEND("221 Sajonara!");
+														
+														CONNECTERE_IP.remove(IP);
+
+														if(SSL_SESSION == null) {
+															SESSION.close();
+														} else {
+															SSL_SESSION.close();
+														}
+														return;
+													}
+
+													default:{
+														BWW.SEND("502 sono komando nai!");
+														break;
+													}
 												}
+											} catch (Exception EX) {
+												EX.printStackTrace();
+												BWW.SEND("451 System err");
 											}
 										}
-									}catch (Exception EX) {
+									} catch (Exception EX) {
 										EX.printStackTrace();
 									}
 								}
