@@ -112,8 +112,8 @@ public class SMTP_SERVER {
 														//メールボックスを開く
 														MAILBOX MB = new MAILBOX(TO);
 														MB.MAIL_SAVE(ID, TREES_DATA
-																+"\n"
-																+"Message-ID: <" + ID + ">\n"
+																+"\r\n"
+																+"Message-ID: <" + ID + ">\r\n"
 																+MAIL_DATA.TEXT.toString());
 
 														LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
