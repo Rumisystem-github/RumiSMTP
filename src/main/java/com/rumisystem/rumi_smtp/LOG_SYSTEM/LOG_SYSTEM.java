@@ -10,11 +10,13 @@ public class LOG_SYSTEM {
 		switch (LEVEL) {
 			case INFO: {
 				LOG(TYPE, TEXT);
+				break;
 			}
 			
 			case DEBUG: {
 				if (CONFIG_DATA.get("LOG").asInt("LEVEL") == 1) {
 					LOG(TYPE, TEXT);
+					break;
 				}
 			}
 		}

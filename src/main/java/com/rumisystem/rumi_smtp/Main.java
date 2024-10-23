@@ -11,8 +11,8 @@ import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_LEVEL;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
-import com.rumisystem.rumi_smtp.SMTP.SUBMISSION_SERVER;
-import com.rumisystem.rumi_smtp.SMTP.TRANSFER_SERVER;
+import com.rumisystem.rumi_smtp.SMTP.SMTP_MODE;
+import com.rumisystem.rumi_smtp.SMTP.SMTP_SERVER;
 
 public class Main {
 	public static ArrayNode CONFIG_DATA = null;
@@ -32,14 +32,36 @@ public class Main {
 			}
 
 			//配送受付鯖起動
-			LOG_PRINT("TRANSFER_SERVER PORT[" + CONFIG_DATA.get("TRANSFER").asString("PORT") + "] kidou", LOG_TYPE.PROCESS, LOG_LEVEL.INFO);
-			TRANSFER_SERVER.Main();
-			LOG_PRINT("", LOG_TYPE.PROCESS_END_OK, LOG_LEVEL.INFO);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						LOG_PRINT("TRANSFER_SERVER PORT[" + CONFIG_DATA.get("TRANSFER").asString("PORT") + "] kidou", LOG_TYPE.PROCESS, LOG_LEVEL.INFO);
+						SMTP_SERVER TRANSFER_SERVER = new SMTP_SERVER(SMTP_MODE.TRANSFER, CONFIG_DATA.get("TRANSFER").asInt("PORT"));
+						TRANSFER_SERVER.Main();
+						LOG_PRINT("", LOG_TYPE.PROCESS_END_OK, LOG_LEVEL.INFO);
+					} catch (Exception EX) {
+						EX.printStackTrace();
+						System.exit(1);
+					}
+				}
+			}).start();
 
 			//提出受付鯖起動
-			LOG_PRINT("SUBMISSION_SERVER PORT[" + CONFIG_DATA.get("SUBMISSION").asString("PORT") + "] kidou", LOG_TYPE.PROCESS, LOG_LEVEL.INFO);
-			SUBMISSION_SERVER.Main();
-			LOG_PRINT("", LOG_TYPE.PROCESS_END_OK, LOG_LEVEL.INFO);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						LOG_PRINT("SUBMISSION_SERVER PORT[" + CONFIG_DATA.get("SUBMISSION").asString("PORT") + "] kidou", LOG_TYPE.PROCESS, LOG_LEVEL.INFO);
+						SMTP_SERVER SUBMISSTION_SERVER = new SMTP_SERVER(SMTP_MODE.SUBMISSION, CONFIG_DATA.get("SUBMISSION").asInt("PORT"));
+						SUBMISSTION_SERVER.Main();
+						LOG_PRINT("", LOG_TYPE.PROCESS_END_OK, LOG_LEVEL.INFO);
+					} catch (Exception EX) {
+						EX.printStackTrace();
+						System.exit(1);
+					}
+				}
+			}).start();
 
 			/*
 			TRANSFER TF = new TRANSFER("noreply@rumiserver.com", "rumisan_@outlook.com");
