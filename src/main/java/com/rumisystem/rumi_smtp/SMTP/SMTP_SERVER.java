@@ -98,43 +98,38 @@ public class SMTP_SERVER {
 
 										//指定された送信先に保存なりなんなりする
 										for (String TO:MAIL_DATA.TO) {
-											//モードがTRANSFER(配送)ならメールボックスに保存(アカウントがないやつは無視する)
-											if (MODE == SMTP_MODE.TRANSFER) {
-												String ID = UUID.randomUUID().toString();
-												String TREES_DATA = "Received: "
-														+ "from " + MAIL_DATA.DOMAIN + "(" + SESSION.getIP() + ") by "
-														+ "with ESMTP id " + ID + " for <" + TO + ">;";
+											String ID = UUID.randomUUID().toString();
+											String TREES_DATA = "Received: "
+													+ "from " + MAIL_DATA.DOMAIN + "(" + SESSION.getIP() + ") by "
+													+ "with ESMTP id " + ID + " for <" + TO + ">;";
 
-												//メアドは自分のドメインか？
-												if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
-													//アカウントが有るか？
-													if (new ACCOUNT(TO).EXISTS()) {
-														//メールボックスを開く
-														MAILBOX MB = new MAILBOX(TO);
-														MB.MAIL_SAVE(ID, TREES_DATA
-																+"\r\n"
-																+"Message-ID: <" + ID + ">\r\n"
-																+MAIL_DATA.TEXT.toString());
+											//メアドは自分のドメインか？
+											if (CONFIG_DATA.get("SMTP").asString("DOMAIN").contains(TO.split("@")[1])) {
+												//アカウントが有るか？
+												if (new ACCOUNT(TO).EXISTS()) {
+													//メールボックスを開く
+													MAILBOX MB = new MAILBOX(TO);
+													MB.MAIL_SAVE(ID, TREES_DATA
+															+"\r\n"
+															+"Message-ID: <" + ID + ">\r\n"
+															+MAIL_DATA.TEXT.toString());
 
-														LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
-													}
-												} else {
-													//ということは、別のSMTPサーバーに配送するものだが、
-													//配送側(TRANSFER)でされるとスパムされかねないので、提出側(SUBMISSION)で有ることを確認する
-													if (MODE == SMTP_MODE.SUBMISSION) {
-														try {
-															//念の為認証チェック
-															if (AUTH[0]) {
-																TRANSFER SENDER = new TRANSFER(MAIL_DATA.FROM, TO, ID);
-																SENDER.SEND_MAIL(TREES_DATA + "\r\n" + MAIL_DATA.TEXT);
-															}
-														} catch (Exception EX) {
-															//エラーはなかったことにする
-														}
-													}
+													LOG_PRINT("MAIL[" + ID + "] SAVE!", LOG_TYPE.OK, LOG_LEVEL.INFO);
 												}
 											} else {
-												//TODO:提出側を実装
+												//ということは、別のSMTPサーバーに配送するものだが、
+												//配送側(TRANSFER)でされるとスパムされかねないので、提出側(SUBMISSION)で有ることを確認する
+												if (MODE == SMTP_MODE.SUBMISSION) {
+													try {
+														//念の為認証チェック
+														if (AUTH[0]) {
+															TRANSFER SENDER = new TRANSFER(MAIL_DATA.FROM, TO, ID);
+															SENDER.SEND_MAIL(TREES_DATA + "\r\n" + MAIL_DATA.TEXT);
+														}
+													} catch (Exception EX) {
+														//エラーはなかったことにする
+													}
+												}
 											}
 										}
 
@@ -310,7 +305,7 @@ public class SMTP_SERVER {
 	}
 
 	//関数名思いつかんかったわ
-	private static String ababa(String TEXT) {
+	private String ababa(String TEXT) {
 		return TEXT + "\r\n";
 	}
 }
