@@ -24,6 +24,7 @@ import com.rumisystem.rumi_smtp.TRANSFER;
 import com.rumisystem.rumi_smtp.LOG_SYSTEM.LOG_LEVEL;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX;
+import com.rumisystem.rumi_smtp.MODULE.MAIL_ADDRESS_FIND;
 import com.rumisystem.rumi_smtp.TYPE.MAIL;
 
 public class SMTP_SERVER {
@@ -84,7 +85,8 @@ public class SMTP_SERVER {
 						@Override
 						public void Message(MessageEvent E) {
 							try {
-								String[] CMD = E.getString().split(" ");
+								String LINE = E.getString();
+								String[] CMD = LINE.split(" ");
 
 								//ログ
 								LOG_PRINT(MODE_SNAME + "<-" + IP + "|" + SANITIZE.CONSOLE_SANITIZE(E.getString()), LOG_TYPE.INFO, LOG_LEVEL.DEBUG);
@@ -145,6 +147,7 @@ public class SMTP_SERVER {
 									return;
 								}
 
+								//コマンド処理
 								switch(CMD[0]) {
 									case "HELO":{
 										if (CMD[1] == null) {
@@ -187,17 +190,10 @@ public class SMTP_SERVER {
 												break;
 											}
 
-											String FROM = CMD[1].split(":")[1];
+											//メアドを見つける
+											String FROM = MAIL_ADDRESS_FIND.FIND(LINE);
 
-											//<>で囲われていない場合が有るらしいので
-											if (FROM.startsWith("<") && FROM.endsWith(">")) {
-												FROM = FROM.replace("<", "");
-												FROM = FROM.replace(">", "");
-												
-												MAIL_DATA.FROM = FROM;
-											} else {
-												MAIL_DATA.FROM = FROM;
-											}
+											MAIL_DATA.FROM = FROM;
 
 											SESSION.sendMessage(ababa("250 OK!"));
 										} else {
@@ -216,22 +212,13 @@ public class SMTP_SERVER {
 
 											//Toの最大値を超えていないことをチェック
 											if (MAIL_DATA.TO.size() <= CONFIG_DATA.get("SMTP").asInt("MAX_TO_SIZE")) {
-												String TO = CMD[1].split(":")[1];
+												//メアドを見つける
+												String TO = MAIL_ADDRESS_FIND.FIND(LINE);
 
-												//<>で囲われていない場合が有るらしいので
-												if (TO.startsWith("<") && TO.endsWith(">")) {
-													Matcher MATCH = Pattern.compile("<[^>]+>(.*?)</[^>]+>").matcher(TO);
-													TO = TO.replace("<", "");
-													TO = TO.replace(">", "");
-
-													MAIL_DATA.TO.add(TO);
-												} else {
-													MAIL_DATA.TO.add(TO);
-												}
+												MAIL_DATA.TO.add(TO);
 											} else {
 												SESSION.sendMessage(ababa("500 TO ga ooi"));
 											}
-
 											SESSION.sendMessage(ababa("250 OK!"));
 										} else {
 											SESSION.sendMessage(ababa("535 AUTH SHIRO"));
