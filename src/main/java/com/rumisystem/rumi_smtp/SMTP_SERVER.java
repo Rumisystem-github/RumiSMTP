@@ -1,12 +1,9 @@
 package com.rumisystem.rumi_smtp;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.rumisystem.rumi_java_lib.FILER;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_java_lib.Socket.Server.SocketServer;
 import com.rumisystem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT;
@@ -15,17 +12,19 @@ import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.CloseEvent;
 import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.EVENT_LISTENER;
 import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.MessageEvent;
 import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.ReceiveEvent;
+import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX_Manager;
 import com.rumisystem.rumi_smtp.MODULE.MAIL_ADDRESS_FIND;
+import com.rumisystem.rumi_smtp.MODULE.SMTP_TRANSFER;
 import com.rumisystem.rumi_smtp.TYPE.MAIL;
-
+import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
-public class TRANSFER_SERVER {
+public class SMTP_SERVER {
 	private static int MAX_SIZE = 35882577;
 
-	public static void Main(int PORT) throws IOException {
+	public static void Main(int PORT, SERVER_MODE MODE) throws IOException {
 		SocketServer SS = new SocketServer();
 
 		SS.setEventListener(new CONNECT_EVENT_LISTENER() {
@@ -34,12 +33,24 @@ public class TRANSFER_SERVER {
 				try {
 					MAIL MAIL_DATA = new MAIL();
 					boolean[] DATA_SEND_NOW = {false}; //←Javaくんは頭が悪いので、こうしないといけません。
+					boolean[] AUTH = {false};
 					StringBuilder MAIL_TEXT_SB = new StringBuilder();
 					String[] HELO_DOMAIN = {""};
 					boolean[] DATA_SKIP = {false};
 
+					//ようこそメッセージ
 					LOG(LOG_TYPE.INFO, "TRANSFER CONNECTED!");
 					SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!", SESSION);
+
+					//提出側＆ホワイトリストのIPならAUTHをtrueにする
+					if (MODE == SERVER_MODE.SUBMISSION) {
+						for (String WHITE_IP:CONFIG_DATA.get("SUBMISSION").asString("WHITE_LIST").split(",")) {
+							if (SESSION.getIP().contains(WHITE_IP)) {
+								AUTH[0] = true;
+								break;
+							}
+						}
+					}
 
 					SESSION.setEventListener(new EVENT_LISTENER() {
 						@Override
@@ -83,6 +94,8 @@ public class TRANSFER_SERVER {
 											}
 											break;
 										}
+
+										//TODO:AUTHを搭載する
 
 										//送信元指定
 										case "MAIL": {
@@ -128,6 +141,14 @@ public class TRANSFER_SERVER {
 										}
 		
 										case "DATA": {
+											//提出側なら認証チェック
+											if (MODE == SERVER_MODE.SUBMISSION) {
+												if (!AUTH[0]) {
+													SEND("530 AUTH shiro!", SESSION);
+													return;
+												}
+											}
+
 											if (MAIL_DATA.getTO(0) != null && MAIL_DATA.getFROM() != null) {
 												SEND("354 OK! meeru deeta wo okutte! owari wa <CRLF>.<CRLF> dajo!", SESSION);
 												
@@ -193,6 +214,8 @@ public class TRANSFER_SERVER {
 										try {
 											//終了
 											DATA_SEND_NOW[0] = false;
+											//仕様により、受信後にMessageイベントにデータが流れてくるので、「.」が来るまでスキップするように命令する
+											DATA_SKIP[0] = true;
 
 											//取得できた本文を整形
 											String MAIL_TEXT = MAIL_TEXT_SB.toString();
@@ -249,16 +272,44 @@ public class TRANSFER_SERVER {
 											String MESSAGE_ID = UUID.randomUUID().toString() + "@" + HELO_DOMAIN[0];
 											MAIL_DATA.addHEADER("MESSAGE-ID", "<" + MESSAGE_ID + ">");
 
+											//メールデータをビルド
 											String KANSEI = MAIL_DATA.BUILD();
 
-											MAILBOX_Manager MAILBOX = new MAILBOX_Manager(MAIL_DATA.getTO(0));
-											MAILBOX.SaveMail(MESSAGE_ID, KANSEI);
+											//ローカルユーザーか？
+											if (ACCOUNT_Manager.Exists(MAIL_DATA.getTO(0))) {
+												//提出側なら、認証してるかチェック
+												if (MODE == SERVER_MODE.SUBMISSION) {
+													if (!AUTH[0]) {
+														SEND("530 AUTH shiro!", SESSION);
+														return;
+													}
+												}
 
+												//ローカルユーザーのメールボックスを開く
+												MAILBOX_Manager MAILBOX = new MAILBOX_Manager(MAIL_DATA.getTO(0));
+												MAILBOX.SaveMail(MESSAGE_ID, KANSEI);
+											} else {
+												//外部のユーザー宛だが、スパム鯖に使われたら問題なので、提出側からの受信であることをチェック&認証してるか
+												if (MODE == SERVER_MODE.SUBMISSION && AUTH[0]) {
+													try {
+														//外部のSMTP鯖に提出する
+														SMTP_TRANSFER TRANSFER_SYSTEM = new SMTP_TRANSFER(MAIL_DATA.getFROM(), MAIL_DATA.getTO(0), MESSAGE_ID);
+														TRANSFER_SYSTEM.SEND_MAIL(KANSEI);
+													} catch (Exception EX) {
+														EX.printStackTrace();
+														SEND("451 Blja! SMTP Server ERR:", SESSION);
+														return;
+													}
+												} else {
+													SEND("530 AUTH shiro!", SESSION);
+													return;
+												}
+											}
+
+											//初期化
 											MAIL_DATA.RESET();
 
-											DATA_SKIP[0] = true;
-
-											//成功
+											//成功を通知
 											SEND("250 OK! Okuttajo!", SESSION);
 										} catch (Error EX) {
 											//Errorということは9割メールデータの解析ミスなので、とりあえずRFCの所為にする

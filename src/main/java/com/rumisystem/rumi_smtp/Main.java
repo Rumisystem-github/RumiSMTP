@@ -15,6 +15,7 @@ import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX_Manager;
 import com.rumisystem.rumi_smtp.TYPE.MAIL;
+import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
 
 public class Main {
 	public static ArrayNode CONFIG_DATA = null;
@@ -40,10 +41,24 @@ public class Main {
 				@Override
 				public void run() {
 					try {
-						TRANSFER_SERVER.Main(CONFIG_DATA.get("TRANSFER").asInt("PORT"));
+						SMTP_SERVER.Main(CONFIG_DATA.get("TRANSFER").asInt("PORT"), SERVER_MODE.TRANSFER);
 					} catch (Exception EX) {
 						EX.printStackTrace();
-						System.out.println("TRANSFER SERVER START ERR!");
+						LOG(LOG_TYPE.FAILED, "TRANSFER SERVER START ERR!");
+						System.exit(1);
+					}
+				}
+			}).start();
+
+			//提出受付側
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						SMTP_SERVER.Main(CONFIG_DATA.get("SUBMISSION").asInt("PORT"), SERVER_MODE.SUBMISSION);
+					} catch (Exception EX) {
+						EX.printStackTrace();
+						LOG(LOG_TYPE.FAILED, "SUBMISSION SERVER START ERR!");
 						System.exit(1);
 					}
 				}
