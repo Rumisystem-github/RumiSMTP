@@ -194,10 +194,6 @@ public class TRANSFER_SERVER {
 											//終了
 											DATA_SEND_NOW[0] = false;
 
-											System.out.println("============================================");
-											System.out.println(MAIL_TEXT_SB.toString());
-											System.out.println("============================================");
-
 											//取得できた本文を整形
 											String MAIL_TEXT = MAIL_TEXT_SB.toString();
 											MAIL_TEXT = MAIL_TEXT.replaceAll(END_TEXT + ".*", "");
