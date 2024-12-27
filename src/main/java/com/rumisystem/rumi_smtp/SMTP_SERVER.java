@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.rumisystem.rumi_java_lib.SANITIZE;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_java_lib.Socket.Server.SocketServer;
 import com.rumisystem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT;
@@ -66,7 +68,7 @@ public class SMTP_SERVER {
 
 									String[] CMD = E.getString().replace("\r\n", "").split(" ");
 
-									LOG(LOG_TYPE.INFO, "T<-[" + E.getString() + "]");
+									LOG(LOG_TYPE.INFO, "T<-[" + SANITIZE.CONSOLE_SANITIZE(E.getString()) + "]");
 
 									//コマンド処理
 									switch (CMD[0]) {
@@ -201,7 +203,7 @@ public class SMTP_SERVER {
 						public void Receive(ReceiveEvent E) {
 							try {
 								if (DATA_SEND_NOW[0]) {
-									LOG(LOG_TYPE.INFO, "T<=" + E.getString());
+									LOG(LOG_TYPE.INFO, "T<=" + SANITIZE.CONSOLE_SANITIZE(E.getString()));
 
 									String END_TEXT = "\r\n.\r\n";
 									//受信したデータをメールデータに挿入
