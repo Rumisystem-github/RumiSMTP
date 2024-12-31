@@ -199,17 +199,31 @@ public class SMTP_SERVER {
 							}
 						}
 
+						// データ受信の順序保証のためにキューを使用
+                        Queue<String> dataQueue = new LinkedList<>();
+                        
+                        // StringBuilder を StringBuffer に変更
+                        StringBuffer MAIL_TEXT_SB = new StringBuffer();
+
 						@Override
 						public void Receive(ReceiveEvent E) {
 							try {
 								if (DATA_SEND_NOW[0]) {
 									LOG(LOG_TYPE.INFO, "T<=" + E.getString().length() + "Byte");
 
-									String END_TEXT = "\r\n.\r\n";
-									//受信したデータをメールデータに挿入
-									if (MAIL_TEXT_SB.length() <= MAX_SIZE) {
-										MAIL_TEXT_SB.append(E.getString());
-									}
+									// 受信したデータをキューに追加
+                                    synchronized (dataQueue) {
+                                        dataQueue.add(E.getString());
+                                    }
+									
+                                    // キューから順番にデータを取り出して処理
+                                    synchronized (dataQueue) {
+                                        while (!dataQueue.isEmpty()) {
+                                            String receivedData = dataQueue.poll();
+											// 受信したデータをメールデータに挿入
+                                            if (MAIL_TEXT_SB.length() <= MAX_SIZE) {
+                                                MAIL_TEXT_SB.append(receivedData);
+                                            }
 
 									//メールデータ入力モード
 									if (MAIL_TEXT_SB.toString().contains(END_TEXT)) {
