@@ -24,9 +24,9 @@ import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 public class SMTP_SERVER {
-	private static int MAX_SIZE = 35882577;
+	private int MAX_SIZE = 35882577;
 
-	public static void Main(int PORT, SERVER_MODE MODE) throws IOException {
+	public void Main(int PORT, SERVER_MODE MODE) throws IOException {
 		SocketServer SS = new SocketServer();
 
 		SS.setEventListener(new CONNECT_EVENT_LISTENER() {
@@ -203,7 +203,7 @@ public class SMTP_SERVER {
 						public void Receive(ReceiveEvent E) {
 							try {
 								if (DATA_SEND_NOW[0]) {
-									LOG(LOG_TYPE.INFO, "T<=" + SANITIZE.CONSOLE_SANITIZE(E.getString()));
+									LOG(LOG_TYPE.INFO, "T<=" + E.getString().length() + "Byte");
 
 									String END_TEXT = "\r\n.\r\n";
 									//受信したデータをメールデータに挿入
@@ -222,6 +222,9 @@ public class SMTP_SERVER {
 											//取得できた本文を整形
 											String MAIL_TEXT = MAIL_TEXT_SB.toString();
 											MAIL_TEXT = MAIL_TEXT.replaceAll(END_TEXT + ".*", "");
+											System.out.println("-----------------------------------------------------");
+											System.out.println(MAIL_TEXT);
+											System.out.println("-----------------------------------------------------");
 
 											//Receivedヘッダーを設定する
 											StringBuilder RECEIVED_HEADER_SB = new StringBuilder();

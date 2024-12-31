@@ -41,7 +41,7 @@ public class Main {
 				@Override
 				public void run() {
 					try {
-						SMTP_SERVER.Main(CONFIG_DATA.get("TRANSFER").asInt("PORT"), SERVER_MODE.TRANSFER);
+						new SMTP_SERVER().Main(CONFIG_DATA.get("TRANSFER").asInt("PORT"), SERVER_MODE.TRANSFER);
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "TRANSFER SERVER START ERR!");
@@ -55,7 +55,7 @@ public class Main {
 				@Override
 				public void run() {
 					try {
-						SMTP_SERVER.Main(CONFIG_DATA.get("SUBMISSION").asInt("PORT"), SERVER_MODE.SUBMISSION);
+						new SMTP_SERVER().Main(CONFIG_DATA.get("SUBMISSION").asInt("PORT"), SERVER_MODE.SUBMISSION);
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "SUBMISSION SERVER START ERR!");
