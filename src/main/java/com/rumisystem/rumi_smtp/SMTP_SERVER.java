@@ -71,7 +71,7 @@ public class SMTP_SERVER {
 									LOG(LOG_TYPE.INFO, "T<-[" + SANITIZE.CONSOLE_SANITIZE(E.getString()) + "]");
 
 									//コマンド処理
-									switch (CMD[0]) {
+									switch (CMD[0].toUpperCase()) {
 										//へろー
 										case "HELO": {
 											if (CMD[1] != null) {
