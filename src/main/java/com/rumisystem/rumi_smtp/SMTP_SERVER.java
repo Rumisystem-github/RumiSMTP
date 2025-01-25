@@ -189,7 +189,12 @@ public class SMTP_SERVER {
 										}
 		
 										default: {
-											SEND("502 COMMAND GA NAI", SESSION);
+											if (!HELO_DOMAIN[0].equals("")) {
+												SEND("502 COMMAND GA NAI", SESSION);
+											} else {
+												//HELO/EHLOをしていない＆コマンドが違う=SMTPにHTTP送りつけてる馬鹿野郎の亜種
+												SESSION.close();
+											}
 										}
 									}
 								}
