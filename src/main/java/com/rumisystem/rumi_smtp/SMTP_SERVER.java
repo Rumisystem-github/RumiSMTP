@@ -1,6 +1,7 @@
 package com.rumisystem.rumi_smtp;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -270,7 +271,9 @@ public class SMTP_SERVER {
 													}
 
 													//此処に来た＝エラー
-													throw new Error("ヘッダー解析失敗：正規表現がマッチせず");
+													//Errorということは9割メールデータの解析ミスなので、とりあえずRFCの所為にする
+													SEND("554 Blja! MAIL DATA ga RFC ni zhunkjo shite nai!", SESSION);
+													return;
 												} else {
 													//本文解析モード
 													MAIL_DATA.addTEXT(TEXT_LINE + "\r\n");
@@ -322,8 +325,8 @@ public class SMTP_SERVER {
 											//成功を通知
 											SEND("250 OK! Okuttajo!", SESSION);
 										} catch (Error EX) {
-											//Errorということは9割メールデータの解析ミスなので、とりあえずRFCの所為にする
-											SEND("554 Blja! MAIL DATA ga RFC ni zhunkjo shite nai!", SESSION);
+											//エラー
+											SEND("451 Errr<" + new String(Base64.getEncoder().encode(EX.getMessage().getBytes())) + ">", SESSION);
 											return;
 										} catch (Exception EX) {
 											EX.printStackTrace();
