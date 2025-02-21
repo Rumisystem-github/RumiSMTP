@@ -16,6 +16,7 @@ import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.EVENT_LISTENER;
 import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.MessageEvent;
 import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.ReceiveEvent;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
+import com.rumisystem.rumi_smtp.MODULE.DMARCChecker;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX_Manager;
 import com.rumisystem.rumi_smtp.MODULE.MAIL_ADDRESS_FIND;
 import com.rumisystem.rumi_smtp.MODULE.SMTP_TRANSFER;
@@ -298,9 +299,17 @@ public class SMTP_SERVER {
 													}
 												}
 
-												//ローカルユーザーのメールボックスを開く
-												MAILBOX_Manager MAILBOX = new MAILBOX_Manager(MAIL_DATA.getTO(0));
-												MAILBOX.SaveMail(MESSAGE_ID, KANSEI);
+												System.out.println(MAIL_DATA.getFROM().split("@")[1]);
+												System.out.println(SESSION.getIP());
+
+												//DMARCチェック
+												if (DMARCChecker.Check(MAIL_DATA.getFROM().split("@")[1], SESSION.getIP())) {
+													//ローカルユーザーのメールボックスを開く
+													MAILBOX_Manager MAILBOX = new MAILBOX_Manager(MAIL_DATA.getTO(0));
+													MAILBOX.SaveMail(MESSAGE_ID, KANSEI);
+												} else {
+													SEND("530 DMARC Error", SESSION);
+												}
 											} else {
 												//外部のユーザー宛だが、スパム鯖に使われたら問題なので、提出側からの受信であることをチェック&認証してるか
 												if (MODE == SERVER_MODE.SUBMISSION && AUTH[0]) {

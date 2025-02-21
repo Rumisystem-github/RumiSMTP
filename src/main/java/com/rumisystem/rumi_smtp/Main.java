@@ -1,20 +1,12 @@
 package com.rumisystem.rumi_smtp;
 
 import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
-
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.rumisystem.rumi_java_lib.ArrayNode;
 import com.rumisystem.rumi_java_lib.CONFIG;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
-import com.rumisystem.rumi_smtp.MODULE.MAILBOX_Manager;
-import com.rumisystem.rumi_smtp.TYPE.MAIL;
+import com.rumisystem.rumi_smtp.MODULE.DMARCChecker;
 import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
 
 public class Main {
