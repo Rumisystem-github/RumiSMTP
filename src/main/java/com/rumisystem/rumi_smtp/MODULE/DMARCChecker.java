@@ -12,7 +12,9 @@ import javax.naming.directory.*;
 
 import com.fasterxml.jackson.annotation.Nulls;
 import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import com.rumisystem.rumi_smtp.TYPE.SPFAll;
 import com.rumisystem.rumi_smtp.TYPE.SPFAllowIP;
+import com.rumisystem.rumi_smtp.TYPE.SPFContent;
 import com.rumisystem.rumi_smtp.TYPE.SPFSetting;
 import javax.naming.*;
 
@@ -35,8 +37,10 @@ public class DMARCChecker {
 	}
 
 	private static boolean CheckSPF(String Domain, String IP) throws NamingException, UnknownHostException {
-		List<SPFSetting> SPFSettingList = GetSPF(Domain);
-		for (SPFSetting SPF:SPFSettingList) {
+		SPFSetting Setting = GetSPF(Domain);
+		List<SPFContent> ContentList = Setting.GetContent();
+
+		for (SPFContent SPF:ContentList) {
 			switch (SPF.GetAllowIP()) {
 				case IP:{
 					for (String ROW:SPF.GetIPList()) {
@@ -50,6 +54,8 @@ public class DMARCChecker {
 
 						if ((IPLong & Mask) == (BaseIPLong & Mask)) {
 							return true;
+						} else if (Setting.GetAll() == SPFAll.SoftFail) {
+							return true;
 						}
 					}
 					break;
@@ -60,6 +66,8 @@ public class DMARCChecker {
 						LOG(LOG_TYPE.OK, "[CheckSPF]Aチェック:" + ROW);
 
 						if (ROW.equals(IP)) {
+							return true;
+						} else if (Setting.GetAll() == SPFAll.SoftFail) {
 							return true;
 						}
 					}
@@ -74,6 +82,8 @@ public class DMARCChecker {
 							LOG(LOG_TYPE.OK, "[CheckSPF]MXレコードチェック:" + ROW);
 							if (MX_A_Recorde.equals(IP)) {
 								return true;
+							} else if (Setting.GetAll() == SPFAll.SoftFail) {
+								return true;
 							}
 						}
 					}
@@ -86,13 +96,20 @@ public class DMARCChecker {
 		return false;
 	}
 
-	private static List<SPFSetting> GetSPF(String Domain) throws NamingException {
-		List<SPFSetting> SettingList = new ArrayList<SPFSetting>();
+	private static SPFSetting GetSPF(String Domain) throws NamingException {
+		SPFAll all = SPFAll.Fail;
+		List<SPFContent> ContentList = new ArrayList<SPFContent>();
 
 		for (String ROW:GetDNS(Domain, "TXT")) {
 			if (ROW.contains("v=spf1 ") && !ROW.contains(" redirect=")) {
 				SPFAllowIP AllowIP = null;
 				List<String> IPList = new ArrayList<String>();
+
+				if (ROW.contains(" ~all")) {
+					all = SPFAll.SoftFail;
+				} else if (ROW.contains(" -all")) {
+					all = SPFAll.Fail;
+				}
 
 				//IP
 				Matcher IPv4Match = Pattern.compile("(?:ip4|ip6):(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\/\\d{1,2})").matcher(ROW);
@@ -170,8 +187,8 @@ public class DMARCChecker {
 				//インクルード
 				Matcher IncludeMatch = Pattern.compile(" include:(\\S*)").matcher(ROW);
 				while (IncludeMatch.find()) {
-					for (SPFSetting SPF:GetSPF(IncludeMatch.group(1))) {
-						SettingList.add(SPF);
+					for (SPFContent SPF:GetSPF(IncludeMatch.group(1)).GetContent()) {
+						ContentList.add(SPF);
 					}
 
 					LOG(LOG_TYPE.INFO, "[GetSPF]インクルード:" + IncludeMatch.group(1));
@@ -179,7 +196,7 @@ public class DMARCChecker {
 
 				//値が有ったなら追加しましょう
 				if (AllowIP != null && IPList.size() != 0) {
-					SettingList.add(new SPFSetting(AllowIP, IPList));
+					ContentList.add(new SPFContent(AllowIP, IPList));
 				}
 			} else if (ROW.contains(" redirect=")) {
 				//リダイレクト
@@ -194,7 +211,7 @@ public class DMARCChecker {
 
 		LOG(LOG_TYPE.OK, "[GetSPF]Done");
 
-		return SettingList;
+		return new SPFSetting(ContentList, all);
 	}
 
 	public static long ipToLong(String IP) throws UnknownHostException {

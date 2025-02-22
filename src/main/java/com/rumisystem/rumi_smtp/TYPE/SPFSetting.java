@@ -3,19 +3,19 @@ package com.rumisystem.rumi_smtp.TYPE;
 import java.util.List;
 
 public class SPFSetting {
-	private SPFAllowIP AllowIP = null;
-	private List<String> IPList = null;
+	private List<SPFContent> Content = null;
+	private SPFAll AllSetting;
 
-	public SPFSetting(SPFAllowIP AllowIP, List<String> IPList) {
-		this.AllowIP = AllowIP;
-		this.IPList = IPList;
+	public SPFSetting(List<SPFContent> Content, SPFAll AllSetting) {
+		this.Content = Content;
+		this.AllSetting = AllSetting;
 	}
 
-	public SPFAllowIP GetAllowIP() {
-		return AllowIP;
+	public List<SPFContent> GetContent() {
+		return Content;
 	}
 
-	public List<String> GetIPList() {
-		return IPList;
+	public SPFAll GetAll() {
+		return AllSetting;
 	}
 }
