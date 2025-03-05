@@ -282,6 +282,9 @@ public class SMTP_SERVER {
 												}
 											}
 
+											//送信元のSMTPが設定したメッセージIDを保存する
+											MAIL_DATA.addHEADER("REFERENCES", MAIL_DATA.getHeader("MESSAGE-ID"));
+
 											//メッセージIDを設定(送信側で既に設定されてる可能性があるので、こっちで書き換える)
 											String MESSAGE_ID = UUID.randomUUID().toString() + "@" + HELO_DOMAIN[0];
 											MAIL_DATA.addHEADER("MESSAGE-ID", "<" + MESSAGE_ID + ">");

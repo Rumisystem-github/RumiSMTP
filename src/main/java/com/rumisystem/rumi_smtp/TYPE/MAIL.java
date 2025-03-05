@@ -34,6 +34,10 @@ public class MAIL {
 		HEADER_LIST.put(KEY.toUpperCase(), VAL);
 	}
 
+	public String getHeader(String KEY) {
+		return HEADER_LIST.get(KEY);
+	}
+
 	public void appendHEADER(String KEY, String NEW_VAL) {
 		if (HEADER_LIST.get(KEY.toUpperCase()) != null) {
 			String OLD_VAL = HEADER_LIST.get(KEY.toUpperCase());
