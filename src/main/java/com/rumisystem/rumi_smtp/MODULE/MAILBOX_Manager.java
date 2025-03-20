@@ -9,16 +9,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.rumisystem.rumi_java_lib.FILER;
+import su.rumishistem.rumi_java_lib.FILER;
 
 public class MAILBOX_Manager {
 	private Path MAILBOX_PATH;
 
 	public MAILBOX_Manager(String ADDRESS) throws IOException {
 		if (ACCOUNT_Manager.Exists(ADDRESS)) {
-			if (CONFIG_DATA.get("MAILBOX").asString("MODE").equals("FILE")) {
+			if (CONFIG_DATA.get("MAILBOX").getData("MODE").asString().equals("FILE")) {
 				//ファイルモード
-				MAILBOX_PATH = Paths.get(CONFIG_DATA.get("MAILBOX").asString("PATH") + ADDRESS);
+				MAILBOX_PATH = Paths.get(CONFIG_DATA.get("MAILBOX").getData("PATH").asString() + ADDRESS);
 
 				//ボックスがないなら作る
 				if (!Files.exists(MAILBOX_PATH)) {

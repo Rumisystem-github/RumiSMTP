@@ -1,8 +1,8 @@
 package com.rumisystem.rumi_smtp.MODULE;
 
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
-import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
-import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.TYPE.LOG_LEVEL;
 
 public class LOG_SYSTEM {
@@ -14,7 +14,7 @@ public class LOG_SYSTEM {
 			}
 			
 			case DEBUG: {
-				if (CONFIG_DATA.get("LOG").asInt("LEVEL") == 1) {
+				if (CONFIG_DATA.get("LOG").getData("LEVEL").asInt() == 1) {
 					LOG(TYPE, TEXT);
 					break;
 				}

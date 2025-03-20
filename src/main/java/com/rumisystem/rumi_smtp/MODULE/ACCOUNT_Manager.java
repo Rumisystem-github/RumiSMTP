@@ -11,9 +11,9 @@ public class ACCOUNT_Manager {
 	private static HashMap<String, String> ACCOUNT_LIST = new HashMap<String, String>();
 
 	public static void INIT() throws IOException {
-		if (CONFIG_DATA.get("ACCOUNT").asString("MODE").equals("FILE")) {
+		if (CONFIG_DATA.get("ACCOUNT").getData("MODE").asString().equals("FILE")) {
 			//ファイルモード
-			List<String> ACCOUNT_TXT = Files.readAllLines(Paths.get(CONFIG_DATA.get("ACCOUNT").asString("PATH")));
+			List<String> ACCOUNT_TXT = Files.readAllLines(Paths.get(CONFIG_DATA.get("ACCOUNT").getData("PATH").asString()));
 			for (String LINE:ACCOUNT_TXT) {
 				if (LINE.split(":").length == 2) {
 					String ADDRESS = LINE.split(":")[0];

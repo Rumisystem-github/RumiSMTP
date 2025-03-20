@@ -11,14 +11,14 @@ import java.util.regex.Pattern;
 import javax.naming.directory.*;
 
 import com.fasterxml.jackson.annotation.Nulls;
-import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.TYPE.SPFAll;
 import com.rumisystem.rumi_smtp.TYPE.SPFAllowIP;
 import com.rumisystem.rumi_smtp.TYPE.SPFContent;
 import com.rumisystem.rumi_smtp.TYPE.SPFSetting;
 import javax.naming.*;
 
-import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.MODULE.DNSResolve.GetDNS;
 
 public class DMARCChecker {

@@ -6,15 +6,15 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.rumisystem.rumi_java_lib.SANITIZE;
-import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
-import com.rumisystem.rumi_java_lib.Socket.Server.SocketServer;
-import com.rumisystem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT;
-import com.rumisystem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT_LISTENER;
-import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.CloseEvent;
-import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.EVENT_LISTENER;
-import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.MessageEvent;
-import com.rumisystem.rumi_java_lib.Socket.Server.EVENT.ReceiveEvent;
+import su.rumishistem.rumi_java_lib.SANITIZE;
+import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import su.rumishistem.rumi_java_lib.Socket.Server.SocketServer;
+import su.rumishistem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT;
+import su.rumishistem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT_LISTENER;
+import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.CloseEvent;
+import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.EVENT_LISTENER;
+import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.MessageEvent;
+import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.ReceiveEvent;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
 import com.rumisystem.rumi_smtp.MODULE.DMARCChecker;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX_Manager;
@@ -22,13 +22,13 @@ import com.rumisystem.rumi_smtp.MODULE.MAIL_ADDRESS_FIND;
 import com.rumisystem.rumi_smtp.MODULE.SMTP_TRANSFER;
 import com.rumisystem.rumi_smtp.TYPE.MAIL;
 import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
-import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 public class SMTP_SERVER {
 	private int MAX_SIZE = 35882577;
 
-	public void Main(int PORT, SERVER_MODE MODE) throws IOException {
+	public void Main(int PORT, SERVER_MODE MODE) throws InterruptedException {
 		SocketServer SS = new SocketServer();
 
 		SS.setEventListener(new CONNECT_EVENT_LISTENER() {
@@ -48,7 +48,7 @@ public class SMTP_SERVER {
 
 					//提出側＆ホワイトリストのIPならAUTHをtrueにする
 					if (MODE == SERVER_MODE.SUBMISSION) {
-						for (String WHITE_IP:CONFIG_DATA.get("SUBMISSION").asString("WHITE_LIST").split(",")) {
+						for (String WHITE_IP:CONFIG_DATA.get("SUBMISSION").getData("WHITE_LIST").asString().split(",")) {
 							if (SESSION.getIP().contains(WHITE_IP)) {
 								AUTH[0] = true;
 								break;
@@ -124,7 +124,7 @@ public class SMTP_SERVER {
 										//送信先指定
 										case "RCPT": {
 											if (CMD[1] != null) {
-												if (MAIL_DATA.getTO_Length() <= CONFIG_DATA.get("SMTP").asInt("MAX_TO_SIZE")) {
+												if (MAIL_DATA.getTO_Length() <= CONFIG_DATA.get("SMTP").getData("MAX_TO_SIZE").asInt()) {
 													String TO = MAIL_ADDRESS_FIND.FIND(E.getString());
 		
 													//ヌルチェック

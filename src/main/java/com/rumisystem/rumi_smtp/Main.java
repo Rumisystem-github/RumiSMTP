@@ -1,10 +1,10 @@
 package com.rumisystem.rumi_smtp;
 
-import static com.rumisystem.rumi_java_lib.LOG_PRINT.Main.LOG;
+import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import java.io.File;
-import com.rumisystem.rumi_java_lib.ArrayNode;
-import com.rumisystem.rumi_java_lib.CONFIG;
-import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import su.rumishistem.rumi_java_lib.ArrayNode;
+import su.rumishistem.rumi_java_lib.CONFIG;
+import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
 import com.rumisystem.rumi_smtp.MODULE.DMARCChecker;
 import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
@@ -33,7 +33,7 @@ public class Main {
 				@Override
 				public void run() {
 					try {
-						new SMTP_SERVER().Main(CONFIG_DATA.get("TRANSFER").asInt("PORT"), SERVER_MODE.TRANSFER);
+						new SMTP_SERVER().Main(CONFIG_DATA.get("TRANSFER").getData("PORT").asInt(), SERVER_MODE.TRANSFER);
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "TRANSFER SERVER START ERR!");
@@ -47,7 +47,7 @@ public class Main {
 				@Override
 				public void run() {
 					try {
-						new SMTP_SERVER().Main(CONFIG_DATA.get("SUBMISSION").asInt("PORT"), SERVER_MODE.SUBMISSION);
+						new SMTP_SERVER().Main(CONFIG_DATA.get("SUBMISSION").getData("PORT").asInt(), SERVER_MODE.SUBMISSION);
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "SUBMISSION SERVER START ERR!");

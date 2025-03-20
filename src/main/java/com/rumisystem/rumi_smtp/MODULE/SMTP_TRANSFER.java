@@ -15,7 +15,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Hashtable;
 import static com.rumisystem.rumi_smtp.MODULE.LOG_SYSTEM.LOG_PRINT;
-import com.rumisystem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
+import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.TYPE.LOG_LEVEL;
 
 public class SMTP_TRANSFER {
