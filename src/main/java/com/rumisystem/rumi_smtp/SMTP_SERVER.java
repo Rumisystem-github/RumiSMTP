@@ -36,7 +36,7 @@ public class SMTP_SERVER {
 			public void CONNECT(CONNECT_EVENT SESSION) {
 				try {
 					MAIL MAIL_DATA = new MAIL();
-					boolean[] DATA_SEND_NOW = {false}; //←Javaくんは頭が悪いので、こうしないといけません。
+					boolean[] DATA_SEND_NOW = {false};
 					boolean[] AUTH = {false};
 					StringBuilder MAIL_TEXT_SB = new StringBuilder();
 					String[] HELO_DOMAIN = {""};
@@ -192,9 +192,10 @@ public class SMTP_SERVER {
 		
 										default: {
 											if (!HELO_DOMAIN[0].equals("")) {
+												//HELO/EHLO済み
 												SEND("502 COMMAND GA NAI", SESSION);
 											} else {
-												//HELO/EHLOをしていない＆コマンドが違う=SMTPにHTTP送りつけてる馬鹿野郎の亜種
+												//HELO/EHLOをしていない
 												SEND("221 Omae ga ruuru wo mamoranai nara ore mo yaburuwa, zhaana.", SESSION);
 												SESSION.close();
 											}
@@ -230,9 +231,9 @@ public class SMTP_SERVER {
 											//取得できた本文を整形
 											String MAIL_TEXT = MAIL_TEXT_SB.toString();
 											MAIL_TEXT = MAIL_TEXT.replaceAll(END_TEXT + ".*", "");
-											System.out.println("-----------------------------------------------------");
-											System.out.println(MAIL_TEXT);
-											System.out.println("-----------------------------------------------------");
+											//System.out.println("-----------------------------------------------------");
+											//System.out.println(MAIL_TEXT);
+											//System.out.println("-----------------------------------------------------");
 
 											//Receivedヘッダーを設定する
 											StringBuilder RECEIVED_HEADER_SB = new StringBuilder();

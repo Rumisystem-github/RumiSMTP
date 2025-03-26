@@ -6,7 +6,6 @@ import su.rumishistem.rumi_java_lib.ArrayNode;
 import su.rumishistem.rumi_java_lib.CONFIG;
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
-import com.rumisystem.rumi_smtp.MODULE.DMARCChecker;
 import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
 
 public class Main {
@@ -26,6 +25,7 @@ public class Main {
 				System.exit(1);
 			}
 
+			//アカウンコマネージャー初期化
 			ACCOUNT_Manager.INIT();
 
 			//配送受付側
