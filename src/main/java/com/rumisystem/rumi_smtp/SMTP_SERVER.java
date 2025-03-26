@@ -195,6 +195,7 @@ public class SMTP_SERVER {
 												SEND("502 COMMAND GA NAI", SESSION);
 											} else {
 												//HELO/EHLOをしていない＆コマンドが違う=SMTPにHTTP送りつけてる馬鹿野郎の亜種
+												SEND("221 Omae ga ruuru wo mamoranai nara ore mo yaburuwa, zhaana.", SESSION);
 												SESSION.close();
 											}
 										}
