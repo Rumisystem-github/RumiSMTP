@@ -27,6 +27,7 @@ import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 public class SMTP_SERVER {
 	private int MAX_SIZE = 35882577;
+	private boolean WhiteListIn = false;
 
 	public void Main(int PORT, SERVER_MODE MODE) throws InterruptedException {
 		SocketServer SS = new SocketServer();
@@ -51,6 +52,7 @@ public class SMTP_SERVER {
 						for (String WHITE_IP:CONFIG_DATA.get("SUBMISSION").getData("WHITE_LIST").asString().split(",")) {
 							if (SESSION.getIP().contains(WHITE_IP)) {
 								AUTH[0] = true;
+								WhiteListIn = true;
 								break;
 							}
 						}
@@ -308,7 +310,13 @@ public class SMTP_SERVER {
 												System.out.println(SESSION.getIP());
 
 												//DMARCチェック
-												if (DMARCChecker.Check(MAIL_DATA.getFROM().split("@")[1], SESSION.getIP())) {
+												boolean DMARC_STATUS = DMARCChecker.Check(MAIL_DATA.getFROM().split("@")[1], SESSION.getIP());
+
+												if (WhiteListIn) {
+													DMARC_STATUS = true;
+												}
+
+												if (DMARC_STATUS) {
 													//ローカルユーザーのメールボックスを開く
 													MAILBOX_Manager MAILBOX = new MAILBOX_Manager(MAIL_DATA.getTO(0));
 													MAILBOX.SaveMail(MESSAGE_ID, KANSEI);
