@@ -322,6 +322,7 @@ public class SMTP_SERVER {
 													MAILBOX.SaveMail(MESSAGE_ID, KANSEI);
 												} else {
 													SEND("530 DMARC Error", SESSION);
+													return;
 												}
 											} else {
 												//外部のユーザー宛だが、スパム鯖に使われたら問題なので、提出側からの受信であることをチェック&認証してるか
