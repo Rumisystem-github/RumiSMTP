@@ -1,3 +1,5 @@
+*.pem
+*.key
 target/
 pom.xml.tag
 pom.xml.releaseBackup
