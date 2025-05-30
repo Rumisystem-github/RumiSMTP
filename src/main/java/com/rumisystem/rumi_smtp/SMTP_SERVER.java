@@ -1,10 +1,15 @@
 package com.rumisystem.rumi_smtp;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.SSLException;
 
 import su.rumishistem.rumi_java_lib.SANITIZE;
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
@@ -26,11 +31,26 @@ import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 
 public class SMTP_SERVER {
+	private static final String HeloMessage = "220 rumiserver.com ESMTP RumiSMTP joukoso!";
 	private int MAX_SIZE = 35882577;
 	private boolean WhiteListIn = false;
+	private boolean TLS = false;
 
-	public void Main(int PORT, SERVER_MODE MODE) throws InterruptedException {
+	public void Main(int PORT, SERVER_MODE MODE) throws InterruptedException, SSLException {
 		SocketServer SS = new SocketServer();
+
+		//鍵が有ればTLS
+		if (Files.exists(Path.of(CONFIG_DATA.get("SSL").getData("CERT").asString()))) {
+			if (Files.exists(Path.of(CONFIG_DATA.get("SSL").getData("PRIV").asString()))) {
+				TLS = true;
+				SS.setSSLSetting(
+					CONFIG_DATA.get("SSL").getData("CERT").asString(),
+					CONFIG_DATA.get("SSL").getData("PRIV").asString(),
+					new String[] {"TLSv1.3"}
+				);
+				LOG(LOG_TYPE.OK, "STARTTLSが使用可能です");
+			}
+		}
 
 		SS.setEventListener(new CONNECT_EVENT_LISTENER() {
 			@Override
@@ -45,7 +65,7 @@ public class SMTP_SERVER {
 
 					//ようこそメッセージ
 					LOG(LOG_TYPE.INFO, "TRANSFER CONNECTED!");
-					SEND("220 rumiserver.com ESMTP RumiSMTP joukoso!", SESSION);
+					SEND(HeloMessage, SESSION);
 
 					//提出側＆ホワイトリストのIPならAUTHをtrueにする
 					if (MODE == SERVER_MODE.SUBMISSION) {
@@ -92,12 +112,32 @@ public class SMTP_SERVER {
 										case "EHLO": {
 											if (CMD[1] != null) {
 												SEND("250-OK", SESSION);
+												if (MODE != SERVER_MODE.TRANSFER) {
+													SEND("250-STARTTLS", SESSION);
+												}
 												SEND("250 SIZE-" + MAX_SIZE, SESSION);
 
 												HELO_DOMAIN[0] = CMD[1];
 											} else {
 												SEND("500 Domain ga naizo!", SESSION);
 											}
+											break;
+										}
+
+										case "STARTTLS": {
+											SEND("220 TLS Handshake douzo!", SESSION);
+
+											SESSION.StartTLS().thenAccept(Suc->{
+												try {
+													if (Suc) {
+														SEND(HeloMessage, SESSION);
+													} else {
+														SESSION.close();
+													}
+												} catch (Exception EX) {
+													SESSION.close();
+												}
+											});
 											break;
 										}
 
