@@ -112,8 +112,9 @@ public class SMTP_SERVER {
 										case "EHLO": {
 											if (CMD[1] != null) {
 												SEND("250-OK", SESSION);
-												if (MODE != SERVER_MODE.TRANSFER) {
+												if (MODE == SERVER_MODE.SUBMISSION) {
 													SEND("250-STARTTLS", SESSION);
+													SEND("250-AUTH PLAIN", SESSION);
 												}
 												SEND("250 SIZE-" + MAX_SIZE, SESSION);
 
@@ -141,7 +142,27 @@ public class SMTP_SERVER {
 											break;
 										}
 
-										//TODO:AUTHを搭載する
+										case "AUTH": {
+											if (!SESSION.isTLS()) {
+												SEND("530 STARTTLS shiro!", SESSION);
+												break;
+											}
+
+											if (!CMD[1].equals("PLAIN")) {
+												SEND("530 PLAIN only", SESSION);
+												break;
+											}
+
+											String[] AuthData = new String(Base64.getDecoder().decode(CMD[2])).split("\0");
+											if (ACCOUNT_Manager.Auth(AuthData[1], AuthData[2])) {
+												SEND("235 Auth OK!", SESSION);
+												AUTH[0] = true;
+												break;
+											} else {
+												SEND("535 Auth Error...", SESSION);
+												break;
+											}
+										}
 
 										//送信元指定
 										case "MAIL": {

@@ -31,4 +31,10 @@ public class ACCOUNT_Manager {
 			return false;
 		}
 	}
+
+	public static boolean Auth(String Address, String Password) {
+		if (!Exists(Address)) return false;
+
+		return ACCOUNT_LIST.get(Address).equals(Password);
+	}
 }
