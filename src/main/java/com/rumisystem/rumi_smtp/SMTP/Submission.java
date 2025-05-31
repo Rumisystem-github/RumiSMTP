@@ -6,14 +6,12 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
-import com.rumisystem.rumi_smtp.MODULE.DMARCChecker;
 import com.rumisystem.rumi_smtp.MODULE.MAILBOX_Manager;
 import com.rumisystem.rumi_smtp.MODULE.MAIL_ADDRESS_FIND;
+import com.rumisystem.rumi_smtp.MODULE.SMTP_TRANSFER;
 import com.rumisystem.rumi_smtp.MODULE.TelnetParse;
 import com.rumisystem.rumi_smtp.TYPE.MAIL;
-
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import su.rumishistem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT;
 import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.CloseEvent;
@@ -21,23 +19,33 @@ import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.EVENT_LISTENER;
 import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.MessageEvent;
 import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.ReceiveEvent;
 
-public class Transfer implements EVENT_LISTENER {
-	private static final String HeloMessage = "220 rumiserver.com ESMTP RumiSMTP joukoso!";
+public class Submission implements EVENT_LISTENER{
+	private static final String HeloMessage = "220 rumiserver.com ESMTP RumiSMTP Sub joukoso!";
 
 	private CONNECT_EVENT SESSION;
+	private boolean WhiteListIn = false;
 	private int MAX_SIZE = 35882577;
 	private ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
 	private String HeloDomain = null;
 	private String MailFrom = null;
 	private List<String> MailTo = new ArrayList<String>();
 	private boolean SendingData = false;
+	private boolean AuthOK = false;
 	private ByteArrayOutputStream DataBAOS = new ByteArrayOutputStream();
 
-	public Transfer(CONNECT_EVENT SESSION) {
+	public Submission(CONNECT_EVENT SESSION) {
 		try {
-			LOG(LOG_TYPE.INFO, "TRANSFER：Open Session["+SESSION.getIP()+"]");
+			LOG(LOG_TYPE.INFO, "SUBMISSION：Open Session["+SESSION.getIP()+"]");
 
 			this.SESSION = SESSION;
+
+			for (String WHITE_IP:CONFIG_DATA.get("SUBMISSION").getData("WHITE_LIST").asString().split(",")) {
+				if (SESSION.getIP().contains(WHITE_IP)) {
+					WhiteListIn = true;
+					AuthOK = true;
+					break;
+				}
+			}
 
 			//挨拶
 			Send(HeloMessage);
@@ -50,14 +58,14 @@ public class Transfer implements EVENT_LISTENER {
 	private void Send(String MSG) {
 		try {
 			SESSION.sendMessage(MSG + "\r\n");
-			LOG(LOG_TYPE.INFO, "TRANSFER->[" + MSG + "]");
+			LOG(LOG_TYPE.INFO, "SUBMISSION->[" + MSG + "]");
 		} catch (Exception EX) {
 			//EX.printStackTrace();
 		}
 	}
 
 	private void Run(String[] CMD) {
-		LOG(LOG_TYPE.INFO, "TRANSFER<-[" + String.join(" ", CMD) + "]");
+		LOG(LOG_TYPE.INFO, "SUBMISSION<-[" + String.join(" ", CMD) + "]");
 
 		switch (CMD[0]) {
 			case "HELO": {
@@ -73,6 +81,8 @@ public class Transfer implements EVENT_LISTENER {
 			case "EHLO": {
 				if (CMD[1] != null) {
 					Send("250-OK");
+					Send("250-STARTTLS");
+					Send("250-AUTH-PLAIN");
 					Send("250 SIZE-"+MAX_SIZE);
 					HeloDomain = CMD[1];
 				} else {
@@ -99,12 +109,23 @@ public class Transfer implements EVENT_LISTENER {
 			}
 
 			case "MAIL": {
+				if (!AuthOK) {
+					Send("530 AUTH SHIRO!");
+					return;
+				}
+
 				if (CMD[1] != null) {
 					String FROM = MAIL_ADDRESS_FIND.FIND(String.join(" ", CMD));
 					
 					//ヌルチェック
 					if (FROM != null) {
 						MailFrom = FROM;
+
+						//ローカルユーザーか？
+						if (!ACCOUNT_Manager.Exists(FROM)) {
+							Send("530 Fuck supamaa");
+							return;
+						}
 
 						Send("250 OK");
 					} else {
@@ -118,18 +139,17 @@ public class Transfer implements EVENT_LISTENER {
 			}
 
 			case "RCPT": {
+				if (!AuthOK) {
+					Send("530 AUTH SHIRO!");
+					return;
+				}
+
 				if (CMD[1] != null) {
 					if (MailTo.size() <= CONFIG_DATA.get("SMTP").getData("MAX_TO_SIZE").asInt()) {
 						String TO = MAIL_ADDRESS_FIND.FIND(String.join(" ", CMD));
 
 						//ヌルチェック
 						if (TO != null) {
-							//宛先がローカルユーザーか？
-							if (!ACCOUNT_Manager.Exists(TO)) {
-								Send("530 Fuck supamaa");
-								return;
-							}
-
 							MailTo.add(TO);
 							Send("250 OK");
 						} else {
@@ -192,7 +212,7 @@ public class Transfer implements EVENT_LISTENER {
 	@Override
 	public void Close(CloseEvent e) {
 		try {
-			LOG(LOG_TYPE.INFO, "TRANSFER：Close Session["+SESSION.getIP()+"]");
+			LOG(LOG_TYPE.INFO, "SUBMISSION：Close Session["+SESSION.getIP()+"]");
 		} catch (Exception EX) {
 			//EX.printStackTrace();
 		}
@@ -209,7 +229,7 @@ public class Transfer implements EVENT_LISTENER {
 					Run(CommandLine.split(" "));
 				}
 			} else {
-				LOG(LOG_TYPE.INFO, "TRANSFER<=" + e.getByte().length + "Byte");
+				LOG(LOG_TYPE.INFO, "SUBMISSION<=" + e.getByte().length + "Byte");
 				MAIL MD = MailDataReceive.Receive(e.getByte(), DataBAOS, MAX_SIZE);
 				if (MD != null) {
 					SendingData = false;
@@ -230,16 +250,22 @@ public class Transfer implements EVENT_LISTENER {
 						MD.setHeader("TO", To);
 						String Kansei = MD.BUILD();
 
-						//DMARCチェック
-						boolean DMARC_STATUS = DMARCChecker.Check(MailFrom.split("@")[1], SESSION.getIP());
-
-						if (DMARC_STATUS) {
+						//ローカルユーザー？
+						if (ACCOUNT_Manager.Exists(To)) {
 							//ローカルユーザーのメールボックスを開く
 							MAILBOX_Manager MAILBOX = new MAILBOX_Manager(To);
 							MAILBOX.SaveMail(ID, Kansei);
 						} else {
-							Send("530 DMARC Error");
-							return;
+							//別鯖
+							try {
+								//外部のSMTP鯖に提出する
+								SMTP_TRANSFER TRANSFER_SYSTEM = new SMTP_TRANSFER(MailFrom, To, ID);
+								TRANSFER_SYSTEM.SEND_MAIL(Kansei);
+							} catch (Exception EX) {
+								EX.printStackTrace();
+								Send("451 Blja! SMTP Server ERR:");
+								return;
+							}
 						}
 					}
 

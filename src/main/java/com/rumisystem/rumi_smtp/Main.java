@@ -43,20 +43,19 @@ public class Main {
 				}
 			}).start();
 
-			/*
-			//提出受付側
+			//配送受付側
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					try {
-						new SMTP_SERVER().Main(CONFIG_DATA.get("SUBMISSION").getData("PORT").asInt(), SERVER_MODE.SUBMISSION);
+						new SMTPServer().Main(CONFIG_DATA.get("SUBMISSION").getData("PORT").asInt(), SERVER_MODE.SUBMISSION);
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "SUBMISSION SERVER START ERR!");
 						System.exit(1);
 					}
 				}
-			}).start();*/
+			}).start();
 		} catch (Exception EX) {
 			EX.printStackTrace();
 		}

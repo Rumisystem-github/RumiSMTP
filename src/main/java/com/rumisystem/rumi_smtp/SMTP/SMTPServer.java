@@ -41,7 +41,7 @@ public class SMTPServer {
 				if (MODE == SERVER_MODE.TRANSFER) {
 					SESSION.setEventListener(new Transfer(SESSION));
 				} else {
-					//Submittion側を付けろや殺すぞ
+					SESSION.setEventListener(new Submission(SESSION));
 				}
 			}
 		});
