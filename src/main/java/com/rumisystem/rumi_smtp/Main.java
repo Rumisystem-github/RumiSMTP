@@ -6,6 +6,7 @@ import su.rumishistem.rumi_java_lib.ArrayNode;
 import su.rumishistem.rumi_java_lib.CONFIG;
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
+import com.rumisystem.rumi_smtp.POP.POPServer;
 import com.rumisystem.rumi_smtp.SMTP.SMTPServer;
 import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
 
@@ -52,6 +53,20 @@ public class Main {
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "SUBMISSION SERVER START ERR!");
+						System.exit(1);
+					}
+				}
+			}).start();
+
+			//POP
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						POPServer.Main();
+					} catch (Exception EX) {
+						EX.printStackTrace();
+						LOG(LOG_TYPE.FAILED, "POP SERVER START ERR!");
 						System.exit(1);
 					}
 				}
