@@ -1,79 +1,89 @@
 package com.rumisystem.rumi_smtp.TYPE;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 public class MAIL {
-	private String FROM;
-	private List<String> TO = new ArrayList<String>();
-	private LinkedHashMap<String, String> HEADER_LIST = new LinkedHashMap<String, String>();
-	private String TEXT = "";
+	private LinkedHashMap<String, String> HeaderList = new LinkedHashMap<String, String>();
+	private StringBuilder Text = new StringBuilder();
 
-	public void setFROM(String FROM) {
-		this.FROM = FROM;
+	public MAIL(String MailData) {
+		String[] LineList = MailData.split("\r\n|\n");
+
+		boolean ParseHeader = true;
+		String CurrentHeaderKey = null;
+		StringBuilder CurrentHeaderValue = new StringBuilder();
+		for (String Line:LineList) {
+			if (ParseHeader) {
+				//ヘッダー終わり
+				if (Line.isEmpty()) {
+					ParseHeader = false;
+
+					//ヘッダーリストに追加
+					if (CurrentHeaderKey != null) {
+						HeaderList.put(CurrentHeaderKey, CurrentHeaderValue.toString().trim());
+					}
+					continue;
+				}
+
+				if (!(Line.startsWith(" ") || Line.startsWith("\t"))) {
+					//新たなヘッダー開始
+					if (CurrentHeaderKey != null) {
+						//ヘッダーリストに追加
+						HeaderList.put(CurrentHeaderKey, CurrentHeaderValue.toString().trim());
+					}
+
+					int Colon = Line.indexOf(":");
+					if (Colon > 0) {
+						CurrentHeaderKey = Line.substring(0, Colon).trim();
+						CurrentHeaderValue = new StringBuilder(Line.substring(Colon+1).trim());
+					}
+				} else {
+					//折返し行(RGC5322)
+					CurrentHeaderValue.append("\t").append(Line.trim());
+				}
+			} else {
+				//本文
+				Text.append(Line).append("\r\n");
+			}
+		}
 	}
 
-	public String getFROM() {
-		return FROM;
-	}
-
-	public void addTO(String TO) {
-		this.TO.add(TO);
-	}
-
-	public int getTO_Length() {
-		return TO.size();
-	}
-
-	public String getTO(int I) {
-		return TO.get(I);
-	}
-
-	public void addHEADER(String KEY, String VAL) {
-		HEADER_LIST.put(KEY.toUpperCase(), VAL);
+	public void setHeader(String KEY, String VAL) {
+		HeaderList.put(KEY.toUpperCase(), VAL);
 	}
 
 	public String getHeader(String KEY) {
-		return HEADER_LIST.get(KEY);
+		return HeaderList.get(KEY);
 	}
 
-	public void appendHEADER(String KEY, String NEW_VAL) {
-		if (HEADER_LIST.get(KEY.toUpperCase()) != null) {
-			String OLD_VAL = HEADER_LIST.get(KEY.toUpperCase());
+	public void appendHeader(String KEY, String NEW_VAL) {
+		if (HeaderList.get(KEY.toUpperCase()) != null) {
+			String OLD_VAL = HeaderList.get(KEY.toUpperCase());
 
 			//消し飛ばして入れる
-			HEADER_LIST.remove(KEY.toUpperCase());
-			HEADER_LIST.put(KEY.toUpperCase(), OLD_VAL + NEW_VAL);
+			HeaderList.remove(KEY.toUpperCase());
+			HeaderList.put(KEY.toUpperCase(), OLD_VAL + NEW_VAL);
 		} else {
 			throw new Error("指定されたキーは存在しませぬ");
 		}
 	}
 
-	public void addTEXT(String TEXT) {
-		this.TEXT += TEXT;
-	}
-
-	//本来は、MAIL_DATA = new MAIL();でやる予定だったが、Javaがクソなので出来ず
-	public void RESET() {
-		FROM = "";
-		TO.clear();
-		HEADER_LIST.clear();
-		TEXT = "";
+	public void addTEXT(String Text) {
+		this.Text.append(Text);
 	}
 
 	public String BUILD() {
 		StringBuilder SB = new StringBuilder();
 
 		//ヘッダーをセット
-		for (String KEY:HEADER_LIST.keySet()) {
-			SB.append(KEY + ": " + HEADER_LIST.get(KEY) + "\r\n");
+		for (String KEY:HeaderList.keySet()) {
+			SB.append(KEY + ": " + HeaderList.get(KEY) + "\r\n");
 		}
 
 		SB.append("\r\n");
 
 		//本文をセット(改行コードは既に入ってるので不要)
-		SB.append(TEXT);
+		SB.append(Text);
 
 		return SB.toString();
 	}

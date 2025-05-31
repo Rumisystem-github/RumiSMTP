@@ -6,6 +6,7 @@ import su.rumishistem.rumi_java_lib.ArrayNode;
 import su.rumishistem.rumi_java_lib.CONFIG;
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
+import com.rumisystem.rumi_smtp.SMTP.SMTPServer;
 import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
 
 public class Main {
@@ -33,7 +34,7 @@ public class Main {
 				@Override
 				public void run() {
 					try {
-						new SMTP_SERVER().Main(CONFIG_DATA.get("TRANSFER").getData("PORT").asInt(), SERVER_MODE.TRANSFER);
+						new SMTPServer().Main(CONFIG_DATA.get("TRANSFER").getData("PORT").asInt(), SERVER_MODE.TRANSFER);
 					} catch (Exception EX) {
 						EX.printStackTrace();
 						LOG(LOG_TYPE.FAILED, "TRANSFER SERVER START ERR!");
@@ -42,6 +43,7 @@ public class Main {
 				}
 			}).start();
 
+			/*
 			//提出受付側
 			new Thread(new Runnable() {
 				@Override
@@ -54,7 +56,7 @@ public class Main {
 						System.exit(1);
 					}
 				}
-			}).start();
+			}).start();*/
 		} catch (Exception EX) {
 			EX.printStackTrace();
 		}
