@@ -36,23 +36,24 @@ public class Transfer implements EVENT_LISTENER {
 	private ByteArrayOutputStream DataBAOS = new ByteArrayOutputStream();
 
 	public Transfer(CONNECT_EVENT SESSION) {
-		LOG(LOG_TYPE.INFO, "TRANSFER：New Session");
-
-		this.SESSION = SESSION;
-
 		try {
+			LOG(LOG_TYPE.INFO, "TRANSFER：Open Session["+SESSION.getIP()+"]");
+
+			this.SESSION = SESSION;
+
 			for (String WHITE_IP:CONFIG_DATA.get("SUBMISSION").getData("WHITE_LIST").asString().split(",")) {
 				if (SESSION.getIP().contains(WHITE_IP)) {
 					WhiteListIn = true;
 					break;
 				}
 			}
+
+			//挨拶
+			Send(HeloMessage);
 		} catch (Exception EX) {
 			EX.printStackTrace();
+			SESSION.close();
 		}
-
-		//挨拶
-		Send(HeloMessage);
 	}
 
 	private void Send(String MSG) {
@@ -198,7 +199,13 @@ public class Transfer implements EVENT_LISTENER {
 	}
 
 	@Override
-	public void Close(CloseEvent e) {}
+	public void Close(CloseEvent e) {
+		try {
+			LOG(LOG_TYPE.INFO, "TRANSFER：Close Session["+SESSION.getIP()+"]");
+		} catch (Exception EX) {
+			//EX.printStackTrace();
+		}
+	}
 
 	@Override
 	public void Message(MessageEvent e) {}
