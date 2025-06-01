@@ -25,6 +25,7 @@ public class POPHandler implements EVENT_LISTENER{
 	private CONNECT_EVENT SESSION;
 	private String Address;
 	private MAILBOX_Manager MBOX = null;
+	private File[] MailList = null;
 	private boolean AuthOK = false;
 
 	public POPHandler(CONNECT_EVENT SESSION) {
@@ -90,6 +91,7 @@ public class POPHandler implements EVENT_LISTENER{
 				if (CMD[1] != null) {
 					if (ACCOUNT_Manager.Auth(Address, CMD[1])) {
 						MBOX = new MAILBOX_Manager(Address);
+						MailList = MBOX.getNewMailList();
 						AuthOK = true;
 
 						Send("+OK");
@@ -120,7 +122,6 @@ public class POPHandler implements EVENT_LISTENER{
 
 				Send("+OK");
 
-				File[] MailList = MBOX.getNewMailList();
 				for (int I = 0; I < MailList.length; I++) {
 					Send(new StringBuilder().append(I).append(" ").append(MailList[I].length()).toString());
 				}
@@ -137,7 +138,6 @@ public class POPHandler implements EVENT_LISTENER{
 
 				Send("+OK");
 
-				File[] MailList = MBOX.getNewMailList();
 				for (int I = 0; I < MailList.length; I++) {
 					Send(new StringBuilder().append(I).append(" ").append(MailList[I].getName()).toString());
 				}
@@ -153,7 +153,6 @@ public class POPHandler implements EVENT_LISTENER{
 				}
 
 				if (CMD[1] != null) {
-					File[] MailList = MBOX.getNewMailList();
 					File MailFile = null;
 					if (MailList.length >= Integer.parseInt(CMD[1])) {
 						Send("-ERR");
@@ -181,7 +180,6 @@ public class POPHandler implements EVENT_LISTENER{
 					return;
 				}
 
-				File[] MailList = MBOX.getNewMailList();
 				File MailFile = null;
 				if (MailList.length >= Integer.parseInt(CMD[1])) {
 					Send("-ERR");
