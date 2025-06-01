@@ -183,6 +183,7 @@ public class Transfer implements EVENT_LISTENER {
 				} else {
 					//そもそもSMTPではないのでは？
 					Send("221 Fuck you");
+					SESSION.close();
 				}
 				return;
 			}
