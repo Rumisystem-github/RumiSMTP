@@ -61,7 +61,14 @@ public class POPHandler implements EVENT_LISTENER{
 			}
 
 			case "STLS": {
-				Send("+OK");
+				Send("+OK TLS Go Go GO");
+				SESSION.StartTLS().thenAccept(Suc->{
+					if (Suc) {
+						//ようこそメッセージは送らんでいいらしい
+					} else {
+						SESSION.close();
+					}
+				});
 				return;
 			}
 
