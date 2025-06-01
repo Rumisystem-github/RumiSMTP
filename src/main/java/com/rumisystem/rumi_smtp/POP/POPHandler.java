@@ -217,6 +217,11 @@ public class POPHandler implements EVENT_LISTENER{
 
 	@Override
 	public void Close(CloseEvent e) {
+		try {
+			LOG(LOG_TYPE.INFO, "POP：Close Session["+SESSION.getIP()+"]");
+		} catch (Exception EX) {
+			//EX.printStackTrace();
+		}
 	}
 
 	@Override
