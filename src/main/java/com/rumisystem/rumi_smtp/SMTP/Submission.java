@@ -259,9 +259,10 @@ public class Submission implements EVENT_LISTENER{
 						} else {
 							//別鯖
 							try {
+								System.out.println(Kansei);
 								//外部のSMTP鯖に提出する
-								SMTP_TRANSFER TRANSFER_SYSTEM = new SMTP_TRANSFER(MailFrom, To, ID);
-								TRANSFER_SYSTEM.SEND_MAIL(Kansei);
+								//SMTP_TRANSFER TRANSFER_SYSTEM = new SMTP_TRANSFER(MailFrom, To, ID);
+								//TRANSFER_SYSTEM.SEND_MAIL(Kansei);
 							} catch (Exception EX) {
 								EX.printStackTrace();
 								Send("451 Blja! SMTP Server ERR:");

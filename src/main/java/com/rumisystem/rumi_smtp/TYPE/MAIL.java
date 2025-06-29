@@ -20,7 +20,7 @@ public class MAIL {
 
 					//ヘッダーリストに追加
 					if (CurrentHeaderKey != null) {
-						HeaderList.put(CurrentHeaderKey, CurrentHeaderValue.toString().trim());
+						HeaderList.put(CurrentHeaderKey.toUpperCase(), CurrentHeaderValue.toString().trim());
 					}
 					continue;
 				}
@@ -29,7 +29,7 @@ public class MAIL {
 					//新たなヘッダー開始
 					if (CurrentHeaderKey != null) {
 						//ヘッダーリストに追加
-						HeaderList.put(CurrentHeaderKey, CurrentHeaderValue.toString().trim());
+						HeaderList.put(CurrentHeaderKey.toUpperCase(), CurrentHeaderValue.toString().trim());
 					}
 
 					int Colon = Line.indexOf(":");
@@ -49,6 +49,7 @@ public class MAIL {
 	}
 
 	public void setHeader(String KEY, String VAL) {
+		HeaderList.remove(KEY);
 		HeaderList.put(KEY.toUpperCase(), VAL);
 	}
 
