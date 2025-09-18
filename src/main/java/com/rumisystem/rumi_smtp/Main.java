@@ -1,9 +1,11 @@
 package com.rumisystem.rumi_smtp;
 
+import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import java.io.File;
 import su.rumishistem.rumi_java_lib.ArrayNode;
 import su.rumishistem.rumi_java_lib.CONFIG;
+import su.rumishistem.rumi_java_lib.SQL;
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
 import com.rumisystem.rumi_smtp.POP.POPServer;
@@ -25,6 +27,17 @@ public class Main {
 			} else {
 				LOG(LOG_TYPE.PROCESS_END_FAILED, "ERR! Config.ini ga NAI!!!!!!!!!!!!!!");
 				System.exit(1);
+			}
+
+			if (CONFIG_DATA.get("ACCOUNT").getData("MODE").asString().equals("RSV")) {
+				//SQL
+				SQL.CONNECT(
+					CONFIG_DATA.get("ACCOUNT").getData("SQL_HOST").asString(),
+					CONFIG_DATA.get("ACCOUNT").getData("SQL_PORT").asString(),
+					CONFIG_DATA.get("ACCOUNT").getData("SQL_DB").asString(),
+					CONFIG_DATA.get("ACCOUNT").getData("SQL_USER").asString(),
+					CONFIG_DATA.get("ACCOUNT").getData("SQL_PASS").asString()
+				);
 			}
 
 			//アカウンコマネージャー初期化

@@ -26,7 +26,7 @@
 		<dependency>
 			<groupId>su.rumishistem</groupId>
 			<artifactId>rumi_java_lib</artifactId>
-			<version>13.50</version>
+			<version>13.64</version>
 		</dependency>
 	</dependencies>
 
