@@ -4,6 +4,7 @@ import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
@@ -12,6 +13,8 @@ import com.rumisystem.rumi_smtp.MODULE.MAIL_ADDRESS_FIND;
 import com.rumisystem.rumi_smtp.MODULE.SMTP_TRANSFER;
 import com.rumisystem.rumi_smtp.MODULE.TelnetParse;
 import com.rumisystem.rumi_smtp.TYPE.MAIL;
+
+import kotlin.text.Charsets;
 import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
 import su.rumishistem.rumi_java_lib.Socket.Server.CONNECT_EVENT.CONNECT_EVENT;
 import su.rumishistem.rumi_java_lib.Socket.Server.EVENT.CloseEvent;
@@ -105,6 +108,31 @@ public class Submission implements EVENT_LISTENER{
 						SESSION.close();
 					}
 				});
+				return;
+			}
+
+			case "AUTH": {
+				if (CMD.length != 3) {
+					Send("530 LOGIN PLAIN NOMI");
+					return;
+				}
+
+				if (CMD[1].equals("PLAIN") == false) {
+					Send("530 LOGIN PLAIN NOMI");
+					return;
+				}
+
+				String decode = new String(Base64.getDecoder().decode(CMD[2]), Charsets.UTF_8);
+				String[] split = decode.split("\u0000", 3);
+				String address = split.length > 1 ? split[1] : "";
+				String password = split.length > 1 ? split[2] : "";
+				if (ACCOUNT_Manager.Auth(address, password)) {
+					AuthOK = true;
+
+					Send("235 OK");
+				} else {
+					Send("530 ERR");
+				}
 				return;
 			}
 
