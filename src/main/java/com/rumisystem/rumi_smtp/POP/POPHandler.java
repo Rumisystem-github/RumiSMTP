@@ -139,7 +139,7 @@ public class POPHandler implements EVENT_LISTENER{
 				Send("+OK");
 
 				for (int I = 0; I < MailList.length; I++) {
-					Send(new StringBuilder().append(I).append(" ").append(MailList[I].getName()).toString());
+					Send(new StringBuilder().append(I + 1).append(" ").append(MailList[I].getName()).toString());
 				}
 
 				Send(".");
@@ -154,8 +154,9 @@ public class POPHandler implements EVENT_LISTENER{
 
 				if (CMD[1] != null) {
 					File MailFile = null;
-					if (MailList.length >= Integer.parseInt(CMD[1])) {
-						Send("-ERR");
+					System.out.println(MailList.length);
+					if (MailList.length < (Integer.parseInt(CMD[1]) - 1)) {
+						Send("-ERR [REQUEST ID GA OVERFLOW]");
 						return;
 					}
 					MailFile = MailList[Integer.parseInt(CMD[1])];
@@ -169,7 +170,7 @@ public class POPHandler implements EVENT_LISTENER{
 					BR.close();
 					Send(".");
 				} else {
-					Send("-ERR");
+					Send("-ERR [BAD REQUEST]");
 				}
 				return;
 			}

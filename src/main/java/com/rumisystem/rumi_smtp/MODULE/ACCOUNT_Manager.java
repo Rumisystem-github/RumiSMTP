@@ -4,11 +4,14 @@ import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
 import su.rumishistem.rumi_java_lib.ArrayNode;
+import su.rumishistem.rumi_java_lib.HASH;
+import su.rumishistem.rumi_java_lib.HASH.HASH_TYPE;
 import su.rumishistem.rumi_java_lib.SQL;
 
 public class ACCOUNT_Manager {
@@ -30,6 +33,7 @@ public class ACCOUNT_Manager {
 
 	public static boolean Exists(String ADDRESS) {
 		if (CONFIG_DATA.get("ACCOUNT").getData("MODE").asString().equals("RSV")) {
+			//るみ鯖モード
 			try {
 				ArrayNode result = SQL.RUN("SELECT `ID` FROM `MAIL_USER` WHERE CONCAT(`ADDRESS`, '@', `HOST`) = ?;", new Object[] {
 					ADDRESS
@@ -45,6 +49,7 @@ public class ACCOUNT_Manager {
 				return false;
 			}
 		} else {
+			//ファイルモード
 			if (ACCOUNT_LIST.get(ADDRESS) != null) {
 				return true;
 			} else {
@@ -56,8 +61,26 @@ public class ACCOUNT_Manager {
 	public static boolean Auth(String Address, String Password) {
 		if (!Exists(Address)) return false;
 
-		//TODO:るみ鯖モード
+		if (CONFIG_DATA.get("ACCOUNT").getData("MODE").asString().equals("RSV")) {
+			//るみ鯖モード
+			try {
+				ArrayNode result = SQL.RUN("SELECT `PASSWORD` FROM `MAIL_USER` WHERE CONCAT(`ADDRESS`, '@', `HOST`) = ? AND `LOGIN` = 1;", new Object[] {Address});
+				if (result.length() == 1) {
+					String hashed_password = HASH.Gen(HASH_TYPE.SHA3_256, Password.getBytes());
+					if (result.get(0).getData("PASSWORD").asString().equals(hashed_password)) {
+						return true;
+					}
+				}
 
-		return ACCOUNT_LIST.get(Address).equals(Password);
+				return false;
+			} catch (SQLException EX) {
+				return false;
+			} catch (NoSuchAlgorithmException e) {
+				return false;
+			}
+		} else {
+			//ファイルモード
+			return ACCOUNT_LIST.get(Address).equals(Password);
+		}
 	}
 }
