@@ -106,7 +106,7 @@ public class POPHandler implements EVENT_LISTENER{
 
 			case "STAT": {
 				if (!AuthOK) {
-					Send("-ERR");
+					Send("-ERR [AUTH ERROR]");
 					return;
 				}
 
@@ -116,7 +116,7 @@ public class POPHandler implements EVENT_LISTENER{
 
 			case "LIST": {
 				if (!AuthOK) {
-					Send("-ERR");
+					Send("-ERR [AUTH ERROR]");
 					return;
 				}
 
@@ -132,7 +132,7 @@ public class POPHandler implements EVENT_LISTENER{
 
 			case "UIDL": {
 				if (!AuthOK) {
-					Send("-ERR");
+					Send("-ERR [AUTH ERROR]");
 					return;
 				}
 
@@ -148,13 +148,12 @@ public class POPHandler implements EVENT_LISTENER{
 
 			case "RETR": {
 				if (!AuthOK) {
-					Send("-ERR");
+					Send("-ERR [AUTH ERROR]");
 					return;
 				}
 
 				if (CMD[1] != null) {
 					File MailFile = null;
-					System.out.println(MailList.length);
 					if (MailList.length < (Integer.parseInt(CMD[1]) - 1)) {
 						Send("-ERR [REQUEST ID GA OVERFLOW]");
 						return;
@@ -177,13 +176,13 @@ public class POPHandler implements EVENT_LISTENER{
 
 			case "DELE": {
 				if (!AuthOK) {
-					Send("-ERR");
+					Send("-ERR [AUTH ERROR]");
 					return;
 				}
 
 				File MailFile = null;
-				if (MailList.length >= Integer.parseInt(CMD[1])) {
-					Send("-ERR");
+				if (MailList.length < (Integer.parseInt(CMD[1]) - 1)) {
+					Send("-ERR [REQUEST ID GA OVERFLOW]");
 					return;
 				}
 				MailFile = MailList[Integer.parseInt(CMD[1])];
@@ -210,7 +209,7 @@ public class POPHandler implements EVENT_LISTENER{
 			}
 
 			default: {
-				Send("-ERR");
+				Send("-ERR [NTF COMMAND]");
 				return;
 			}
 		}
