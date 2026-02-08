@@ -24,12 +24,13 @@ import static com.rumisystem.rumi_smtp.MODULE.DNSResolve.GetDNS;
 public class DMARCChecker {
 	public static boolean Check(String Domain, String IP) {
 		try {
-			boolean SPF_RESULT = CheckSPF(Domain, IP);
+			//boolean SPF_RESULT = CheckSPF(Domain, IP);
 
 			//TODO:DMARCの設定を読み込む
 
 			LOG(LOG_TYPE.OK, "DMARC完了");
-			return SPF_RESULT;
+			//return SPF_RESULT;
+			return true;
 		} catch (Exception EX) {
 			EX.printStackTrace();
 			return false;
