@@ -1,91 +1,31 @@
 package com.rumisystem.rumi_smtp;
 
-import static com.rumisystem.rumi_smtp.Main.CONFIG_DATA;
-import static su.rumishistem.rumi_java_lib.LOG_PRINT.Main.LOG;
-import java.io.File;
-import su.rumishistem.rumi_java_lib.ArrayNode;
-import su.rumishistem.rumi_java_lib.CONFIG;
-import su.rumishistem.rumi_java_lib.SQL;
-import su.rumishistem.rumi_java_lib.LOG_PRINT.LOG_TYPE;
-import com.rumisystem.rumi_smtp.MODULE.ACCOUNT_Manager;
-import com.rumisystem.rumi_smtp.POP.POPServer;
-import com.rumisystem.rumi_smtp.SMTP.SMTPServer;
-import com.rumisystem.rumi_smtp.TYPE.SERVER_MODE;
+import java.io.IOException;
 
 public class Main {
-	public static ArrayNode CONFIG_DATA = null;
+	public static void main(String[] args) throws IOException {
+		Config.load();
 
-	public static void main(String[] args) {
-		try {
-			LOG(LOG_TYPE.OK, "Staat RumiSMTP!");
-			LOG(LOG_TYPE.PROCESS, "Loading Config.ini ....");
-
-			//設定ファイルを読み込む
-			if (new File("Config.ini").exists()) {
-				CONFIG_DATA = new CONFIG().DATA;
-				LOG(LOG_TYPE.PROCESS_END_OK, "");
-			} else {
-				LOG(LOG_TYPE.PROCESS_END_FAILED, "ERR! Config.ini ga NAI!!!!!!!!!!!!!!");
-				System.exit(1);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new SMTP(Config.SMTP.TransferPort, true);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
-
-			if (CONFIG_DATA.get("ACCOUNT").getData("MODE").asString().equals("RSV")) {
-				//SQL
-				SQL.CONNECT(
-					CONFIG_DATA.get("ACCOUNT").getData("SQL_HOST").asString(),
-					CONFIG_DATA.get("ACCOUNT").getData("SQL_PORT").asString(),
-					CONFIG_DATA.get("ACCOUNT").getData("SQL_DB").asString(),
-					CONFIG_DATA.get("ACCOUNT").getData("SQL_USER").asString(),
-					CONFIG_DATA.get("ACCOUNT").getData("SQL_PASS").asString()
-				);
+		}).start();
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new SMTP(Config.SMTP.SubmissionPort, false);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
-
-			//アカウンコマネージャー初期化
-			ACCOUNT_Manager.INIT();
-
-			//配送受付側
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						new SMTPServer().Main(CONFIG_DATA.get("TRANSFER").getData("PORT").asInt(), SERVER_MODE.TRANSFER);
-					} catch (Exception EX) {
-						EX.printStackTrace();
-						LOG(LOG_TYPE.FAILED, "TRANSFER SERVER START ERR!");
-						System.exit(1);
-					}
-				}
-			}).start();
-
-			//配送受付側
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						new SMTPServer().Main(CONFIG_DATA.get("SUBMISSION").getData("PORT").asInt(), SERVER_MODE.SUBMISSION);
-					} catch (Exception EX) {
-						EX.printStackTrace();
-						LOG(LOG_TYPE.FAILED, "SUBMISSION SERVER START ERR!");
-						System.exit(1);
-					}
-				}
-			}).start();
-
-			//POP
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						POPServer.Main();
-					} catch (Exception EX) {
-						EX.printStackTrace();
-						LOG(LOG_TYPE.FAILED, "POP SERVER START ERR!");
-						System.exit(1);
-					}
-				}
-			}).start();
-		} catch (Exception EX) {
-			EX.printStackTrace();
-		}
+		}).start();
 	}
 }
