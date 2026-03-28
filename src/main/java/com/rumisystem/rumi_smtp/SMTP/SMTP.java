@@ -1,4 +1,4 @@
-package com.rumisystem.rumi_smtp;
+package com.rumisystem.rumi_smtp.SMTP;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,6 +18,11 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.rumisystem.rumi_smtp.Config;
+import com.rumisystem.rumi_smtp.Hash;
+import com.rumisystem.rumi_smtp.Main;
+import com.rumisystem.rumi_smtp.Type.Account;
+
 public class SMTP {
 	private static final Pattern address_regex = Pattern.compile("([a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+)@([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)");
 	private static final int MAX_SIZE = 25 * 1024 * 1024; //25MB
@@ -25,7 +30,6 @@ public class SMTP {
 
 	private ExecutorService pool = Executors.newFixedThreadPool(4);
 	private boolean is_transfer;
-	private boolean develop = true;
 
 	public SMTP(int port, boolean transfer) throws IOException {
 		is_transfer = transfer;
@@ -73,7 +77,7 @@ public class SMTP {
 							while ((line = in.readLine()) != null) {
 								String[] command = line.split(" ");
 								log("-> [" + line + "]");
-								switch (command[0]) {
+								switch (command[0].toUpperCase()) {
 									case "HELO":
 									case "EHLO": {
 										if (command.length != 2) {
@@ -96,33 +100,35 @@ public class SMTP {
 
 									case "AUTH": {
 										//提出側のみ認証を許可する
-										if (is_transfer == false) {
+										if (is_transfer) {
 											println(out, "501 Command wa nai.");
 											break;
 										}
 
-										if (command.length != 3) {
+										if (command.length < 3) {
 											println(out, "501 Command no Argument ga okashii");
 											break;
 										}
 
-										if (!command[1].equals("PLAIN")) {
+										if (!command[1].equalsIgnoreCase("PLAIN")) {
 											println(out, "501 AUTH wa PLAIN nomi.");
 											break;
 										}
 
 										String login_data = new String(Base64.getDecoder().decode(command[2]), StandardCharsets.UTF_8);
-										String[] parts = login_data.split("\0", -1);
+										String[] parts = login_data.split("\u0000", -1);
 										String userid = parts[1].split("@")[0];
 										String host = parts[1].split("@")[1];
 										String password = parts[2];
 										String password_hash = Hash.sha3_256(password.getBytes(StandardCharsets.UTF_8));
 										if (new Account(userid, host).login(password_hash)) {
 											client_auth_ok = true;
+											println(out, "235 Ok!");
 										} else {
 											println(out, "501 Auth Error");
 											return;
 										}
+										break;
 									}
 
 									case "MAIL": {
@@ -281,7 +287,7 @@ public class SMTP {
 	}
 
 	private void log(String message) {
-		if (!develop) return;
+		if (!Main.develop) return;
 		System.out.println(message);
 	}
 }

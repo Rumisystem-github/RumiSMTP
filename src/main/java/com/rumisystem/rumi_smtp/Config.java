@@ -27,6 +27,10 @@ public class Config {
 		public static int SubmissionPort = 0;
 	}
 
+	public static class POP {
+		public static int Port = 0;
+	}
+
 	public static class MailBox {
 		public enum MBMode {
 			File,
@@ -80,6 +84,8 @@ public class Config {
 		SMTP.TransferPort = data.get("TRANSFER").getData("PORT").asInt();
 		SMTP.SubmissionPort = data.get("SUBMISSION").getData("PORT").asInt();
 		SMTP.whitelist_host = data.get("SUBMISSION").getData("WHITE_LIST").asString().split(",");
+
+		POP.Port = data.get("POP").getData("PORT").asInt();
 
 		if (data.get("MAILBOX").getData("MODE").asString().equals("FILE")) {
 			MailBox.Mode = MBMode.File;

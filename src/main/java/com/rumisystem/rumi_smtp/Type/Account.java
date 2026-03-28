@@ -1,8 +1,10 @@
-package com.rumisystem.rumi_smtp;
+package com.rumisystem.rumi_smtp.Type;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+
+import com.rumisystem.rumi_smtp.Config;
 import com.rumisystem.rumi_smtp.Config.Account.ACMode;
 import su.rumishistem.rumi_java_sql.*;
 
@@ -50,7 +52,7 @@ public class Account {
 				this.id = row.get("ID").as_long();
 				this.is_allow_login = row.get("LOGIN").as_boolean();
 				if (this.is_allow_login) {
-					this.password = row.get("PASSWORD").as_string();
+					this.password = row.get("PASSWORD").as_string().toUpperCase();
 				} else {
 					this.password = null;
 				}
